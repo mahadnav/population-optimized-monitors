@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import json
-from utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
+from helpers.utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
 
 if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
