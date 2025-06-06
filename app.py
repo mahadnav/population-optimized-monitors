@@ -190,6 +190,7 @@ if st_map and st_map.get("last_active_drawing"):
         bins=45,
         kind='hist')
         fig.figure.set_size_inches(8, 3)
+        fig.set_axis_labels("Population Density", "Frequency")
 
 
         st.pyplot(fig)
