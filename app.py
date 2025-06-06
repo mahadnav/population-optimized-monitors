@@ -25,7 +25,7 @@ Draw(export=True, draw_options={'rectangle': True, 'polygon': False, 'circle': F
 st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_drawing"])
 
 def download_worldpop(country_code="PAK", year="2020"):
-    base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/ppp_{year}_{country_code}_1km_Aggregated.tif"
+    base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{country_code.lower()}_ppp_2020_UNadj.tif"
     response = requests.get(base_url, stream=True)
 
     if response.status_code != 200:
