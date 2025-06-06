@@ -114,7 +114,7 @@ if st_map and st_map.get("last_active_drawing"):
         gdf.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
         gdf.fillna(0, inplace=True)
         gdf = gdf.loc[~(gdf['population']==0)].reset_index(drop=True)
-        gdf = gdf[["id", 'long', 'lat', 'population', 'row_index', 'col_index']]
+        gdf = gdf[["id", 'long', 'lat', 'row_index', 'col_index', 'population',]]
         st.dataframe(gdf.head())
 
         # --- Displaying the Grid with Population Data ---
