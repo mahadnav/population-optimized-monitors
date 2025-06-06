@@ -166,10 +166,10 @@ if st_map and st_map.get("last_active_drawing"):
             mime="text/csv"
         )
 
-        pop_stats = gdf['population'].describe(['mean', 'min', 'max',])
+        pop_stats = gdf['population'].describe(['mean', 'min', 'max'])
         st.subheader("📊 Population Statistics")
         st.write(pop_stats)
-        
+
     else:
         st.warning("Please draw a rectangle to define the airshed.")
 else:
