@@ -12,3 +12,4 @@ joblib
 rasterstats
 matplotlib
 scikit-learn
+haversine
