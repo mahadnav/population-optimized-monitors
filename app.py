@@ -25,22 +25,34 @@ Draw(export=True, draw_options={'rectangle': True, 'polygon': False, 'circle': F
 st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_drawing"])
 
 def download_worldpop(country_code="PAK", year="2020"):
-    base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{country_code.lower()}_ppp_2020_UNadj.tif"
-    st.write(f"Downloading WorldPop data from: {base_url}")
+    base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/ppp_{year}_{country_code}_1km_Aggregated.tif"
     response = requests.get(base_url, stream=True)
 
     if response.status_code != 200:
-        st.error(f"Failed to download WorldPop raster. Status: {response.status_code}")
+        st.error("Failed to download WorldPop raster.")
         return None
+
+    total_size = int(response.headers.get('content-length', 0))
+    chunk_size = 1024
+    num_chunks = total_size // chunk_size + 1
 
     temp_dir = tempfile.gettempdir()
     out_path = os.path.join(temp_dir, f"worldpop_{country_code}_{year}.tif")
 
-    with open(out_path, 'wb') as f:
-        for chunk in response.iter_content(1024):
-            f.write(chunk)
+    progress_bar = st.progress(0)
+    downloaded = 0
 
+    with open(out_path, 'wb') as f:
+        for i, chunk in enumerate(response.iter_content(chunk_size)):
+            if chunk:
+                f.write(chunk)
+                downloaded += len(chunk)
+                progress = int(downloaded / total_size * 100)
+                progress_bar.progress(min(progress, 100))
+
+    progress_bar.empty()
     return out_path
+
 
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
@@ -75,7 +87,7 @@ if st_map and st_map.get("last_active_drawing"):
         gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
         st.success(f"Grid generated with {len(gdf)} cells.")
 
-        st.info("Downloading WorldPop data (~50MB)...")
+        st.info("Downloading WorldPop data (~500MB)...")
         tif_path = download_worldpop()
         if not tif_path:
             st.stop()
