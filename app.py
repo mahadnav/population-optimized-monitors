@@ -11,6 +11,12 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import json
 
+if "population_grid" not in st.session_state:
+    st.session_state["population_grid"] = None
+if "population_computed" not in st.session_state:
+    st.session_state["population_computed"] = False
+
+
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
 
@@ -68,38 +74,38 @@ if st_map and st_map.get("last_active_drawing"):
 
         tif_file = get_worldpop_data()
 
-        # --- Population Calculation with Progress Bar ---
-        st.info("⏳ Calculating population in each grid cell...")
-        
-        total_geometries = len(gdf)
-        chunk_size = 100  # Process 100 cells at a time
-        population_sums = []
-        
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        for i in range(0, total_geometries, chunk_size):
-            chunk_gdf = gdf.iloc[i:i + chunk_size]
-            
-            # Use the uploaded file object directly. rasterstats can handle it.
-            stats = zonal_stats(chunk_gdf, tif_file, stats="sum", all_touched=True)
-            
-            # Extract sums and append to the main list
-            chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
-            population_sums.extend(chunk_sums)
-            
-            # Update progress
-            processed_count = min(i + chunk_size, total_geometries)
-            percent_complete = processed_count / total_geometries
-            
-            # Update UI
-            progress_bar.progress(percent_complete)
-            status_text.text(f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})")
+        # --- Population Calculation Only If Not Already Done ---
+        if not st.session_state["population_computed"]:
+            st.info("⏳ Calculating population in each grid cell...")
+            total_geometries = len(gdf)
+            chunk_size = 100
+            population_sums = []
 
-        # Clean up progress UI and assign data
-        status_text.text(f"Processed {total_geometries} cells.")
-        progress_bar.empty()
-        gdf["population"] = population_sums
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+
+            for i in range(0, total_geometries, chunk_size):
+                chunk_gdf = gdf.iloc[i:i + chunk_size]
+                stats = zonal_stats(chunk_gdf, tif_file, stats="sum", all_touched=True)
+                chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
+                population_sums.extend(chunk_sums)
+
+                processed_count = min(i + chunk_size, total_geometries)
+                percent_complete = processed_count / total_geometries
+                progress_bar.progress(percent_complete)
+                status_text.text(f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})")
+
+            status_text.text(f"Processed {total_geometries} cells.")
+            progress_bar.empty()
+            gdf["population"] = population_sums
+
+            st.success("✅ Population values computed.")
+            st.session_state["population_grid"] = gdf
+            st.session_state["population_computed"] = True
+        else:
+            gdf = st.session_state["population_grid"]
+            st.success("✅ Population values retrieved from session.")
+
 
         st.success("✅ Population values computed.")
         st.dataframe(gdf.drop(columns="geometry").head())
