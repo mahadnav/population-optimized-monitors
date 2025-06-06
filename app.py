@@ -10,6 +10,14 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import json
+import os
+
+# --- DEBUGGING LINES ---
+st.write("## Debugging Info")
+st.write("**Current Working Directory:**", os.getcwd())
+st.write("**Files in CWD:**", os.listdir("."))
+# --- END DEBUGGING LINES ---
+
 from helpers.utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
 
 if "population_grid" not in st.session_state:
