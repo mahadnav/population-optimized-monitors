@@ -47,6 +47,68 @@ def create_drawing_map():
     Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
     return m
 
+@st.cache_data
+def create_population_grid_map(gdf, map_bounds):
+    """
+    Creates and caches the Folium choropleth map of the population grid.
+    This is slow and should only run once.
+    """
+    st.write("--- Creating Population Grid Map (This should only print once!) ---")
+
+    # Unpack map bounds
+    min_lat, max_lat, min_lon, max_lon = map_bounds
+
+    # Create the base map
+    m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
+    
+    # --- All the GeoJson and Styling logic now lives inside the cached function ---
+    gdf_copy = gdf.copy().fillna(0).reset_index(drop=True)
+    gdf_copy['str_id'] = gdf_copy['id'].astype(str)
+    geojson_data = json.loads(gdf_copy.to_json())
+
+    for i, feature in enumerate(geojson_data['features']):
+        feature['id'] = gdf_copy.loc[i, 'str_id']
+
+    pop_min = gdf_copy['population'].min()
+    pop_max = gdf_copy['population'].max()
+    colormap = cm.get_cmap('plasma')
+    norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
+
+    def style_function(feature):
+        # We need to look up the population from the gdf_copy
+        pop_series = gdf_copy.loc[gdf_copy['str_id'] == feature['id'], 'population']
+        if pop_series.empty:
+            return {'fillOpacity': 0, 'weight': 0}
+        
+        pop = pop_series.values[0]
+
+        if pop == 0 or np.isnan(pop):
+            return {'fillOpacity': 0, 'weight': 0}
+        else:
+            color = colors.rgb2hex(colormap(norm(pop))[:3])
+            return {
+                'fillColor': color, 'color': 'black',
+                'weight': 0.5, 'fillOpacity': 0.7,
+            }
+
+    folium.GeoJson(
+        geojson_data,
+        name='Population Grid',
+        style_function=style_function,
+        tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
+    ).add_to(m_grid)
+
+    folium.LayerControl().add_to(m_grid)
+
+    return m_grid
+
+
+
+
+
+
+
+
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
 
@@ -142,55 +204,16 @@ if st.session_state.drawing:
 
         st.success("✅ Population values computed.")
 
-        # --- Displaying the Grid with Population Data ---
-        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
-        
-        # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
-        gdf = gdf.fillna(0).reset_index(drop=True)
-        gdf['str_id'] = gdf['id'].astype(str)
-        geojson_data = json.loads(gdf.to_json())
+        st.subheader("🗺️ Grid with Population")
 
-        for i, feature in enumerate(geojson_data['features']):
-            feature['id'] = gdf.loc[i, 'str_id']
+        # Pass the necessary data to the cached function
+        map_bounds = (min_lat, max_lat, min_lon, max_lon)
+        population_map = create_population_grid_map(gdf, map_bounds)
 
-        # Create colormap for population values
-        pop_min = gdf['population'].min()
-        pop_max = gdf['population'].max()
-        colormap = cm.get_cmap('plasma')
-
-        norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
-
-        def style_function(feature):
-            pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
-            if pop == 0 or pop is None or np.isnan(pop):
-                # Fully transparent for zero population
-                return {
-                    'fillOpacity': 0,
-                    'weight': 0
-                }
-            else:
-                color = colors.rgb2hex(colormap(norm(pop))[:3])
-                return {
-                    'fillColor': color,
-                    'color': 'black',
-                    'weight': 0.5,
-                    'fillOpacity': 0.7,
-                }
-
-        folium.GeoJson(
-            geojson_data,
-            name='Population Grid',
-            style_function=style_function,
-            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
-        ).add_to(m_grid)
-
-        folium.LayerControl().add_to(m_grid)
+        # Display the cached map. This is now fast and won't cause a loop.
+        st_folium(population_map, width=1500, height=500)
 
         csv = gdf.to_csv(index=False).encode('utf-8')
-
-        st.subheader("🗺️ Grid with Population")
-        st_folium(m_grid, width=1500, height=500)
-
 
         gdf = gdf.drop(columns=["geometry"])
         gdf['long'], gdf['lat'] = (gdf['left']+ gdf['right'])/2, (gdf['top'] + gdf['bottom'])/2
