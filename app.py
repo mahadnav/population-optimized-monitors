@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 import os
-from helpers.utils import classify_population_density
+from helpers.utils import classify_population_density, plot_clusters
 
 if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
@@ -191,9 +191,9 @@ if st_map and st_map.get("last_active_drawing"):
         kind='hist')
         fig.figure.set_size_inches(8, 3)
         fig.set_axis_labels("Population Density", "Frequency")
-
-
         st.pyplot(fig)
+
+        plot_clusters(density_df, k=10)
     
 
     else:

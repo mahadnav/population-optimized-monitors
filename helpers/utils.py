@@ -12,94 +12,204 @@ def classify_population_density(data):
     data['Density'] = data['cluster'].map(density_mapping)
     return data
 
-# You can also keep your test function here
-def test_import():
-    return "Module 'utils' was successfully imported!"
+def distance(lat1, long1, lat2, long2):
+    return haversine((lat1, long1), (lat2, long2), unit=Unit.KILOMETERS)
 
-# def distance(lat1, long1, lat2, long2):
-#     return haversine((lat1, long1), (lat2, long2), unit=Unit.KILOMETERS)
-
-# def weighted_kmeans(data, centers, k, it_max=300):
-#     points = data.to_dict(orient='records')
-#     d = 2  # number of dimensions (lat, long)
+def weighted_kmeans(data, centers, k, it_max=300):
+    points = data.to_dict(orient='records')
+    d = 2  # number of dimensions (lat, long)
     
-#     for center in centers:
-#         center['n'] = 0
-#         center['w'] = 0
+    for center in centers:
+        center['n'] = 0
+        center['w'] = 0
 
-#     for point in points:
-#         distances = [distance(point['lat'], point['long'], center["coords"][1], center["coords"][0])**2 for center in centers]
-#         idx = np.argmin(distances)
-#         point['cluster'] = idx
-#         centers[idx]["n"] += 1
-#         centers[idx]["w"] += point['population']
+    for point in points:
+        distances = [distance(point['lat'], point['long'], center["coords"][1], center["coords"][0])**2 for center in centers]
+        idx = np.argmin(distances)
+        point['cluster'] = idx
+        centers[idx]["n"] += 1
+        centers[idx]["w"] += point['population']
 
-#     for center in centers:
-#         center["coords"] = np.zeros(d)
+    for center in centers:
+        center["coords"] = np.zeros(d)
 
-#     for point in points:
-#         centers[point['cluster']]["coords"] += np.array([point['long'], point['lat']]) * point['population']
-#     for center in centers:
-#         center["coords"] /= center['w']
+    for point in points:
+        centers[point['cluster']]["coords"] += np.array([point['long'], point['lat']]) * point['population']
+    for center in centers:
+        center["coords"] /= center['w']
 
-#     it_num = 0
-#     distsq = np.zeros(k)
-#     while it_num < it_max:
-#         it_num += 1
-#         swap = 0
-#         for point in points:
-#             ci = point['cluster']
-#             if centers[ci]['n'] <= 1:
-#                 continue
+    it_num = 0
+    distsq = np.zeros(k)
+    while it_num < it_max:
+        it_num += 1
+        swap = 0
+        for point in points:
+            ci = point['cluster']
+            if centers[ci]['n'] <= 1:
+                continue
 
-#             for cj, center in enumerate(centers):
-#                 lat1, long1 = point['lat'], point['long']
-#                 lat2, long2 = center["coords"][1], center["coords"][0]
-#                 if ci == cj:
-#                     distsq[cj] = (distance(lat1, long1, lat2, long2)**2 * center['w']) / (center['w'] - point['population'])
-#                 elif centers[cj]['n'] == 0:
-#                     centers[cj]["coords"] = np.array([long1, lat1])
-#                     distsq[cj] = 0
-#                 else:
-#                     distsq[cj] = (distance(lat1, long1, lat2, long2)**2 * center['w']) / (center['w'] + point['population'])
+            for cj, center in enumerate(centers):
+                lat1, long1 = point['lat'], point['long']
+                lat2, long2 = center["coords"][1], center["coords"][0]
+                if ci == cj:
+                    distsq[cj] = (distance(lat1, long1, lat2, long2)**2 * center['w']) / (center['w'] - point['population'])
+                elif centers[cj]['n'] == 0:
+                    centers[cj]["coords"] = np.array([long1, lat1])
+                    distsq[cj] = 0
+                else:
+                    distsq[cj] = (distance(lat1, long1, lat2, long2)**2 * center['w']) / (center['w'] + point['population'])
 
-#             nearest_cluster = np.argmin(distsq)
-#             if nearest_cluster == ci:
-#                 continue
+            nearest_cluster = np.argmin(distsq)
+            if nearest_cluster == ci:
+                continue
 
-#             cj = nearest_cluster
-#             centers[ci]["coords"] = (centers[ci]['w'] * centers[ci]["coords"] - point['population'] * np.array([point['long'], point['lat']])) / (centers[ci]['w'] - point['population'])
-#             centers[cj]["coords"] = (centers[cj]['w'] * centers[cj]["coords"] + point['population'] * np.array([point['long'], point['lat']])) / (centers[cj]['w'] + point['population'])
-#             centers[ci]['n'] -= 1
-#             centers[cj]['n'] += 1
-#             centers[ci]['w'] -= point['population']
-#             centers[cj]['w'] += point['population']
+            cj = nearest_cluster
+            centers[ci]["coords"] = (centers[ci]['w'] * centers[ci]["coords"] - point['population'] * np.array([point['long'], point['lat']])) / (centers[ci]['w'] - point['population'])
+            centers[cj]["coords"] = (centers[cj]['w'] * centers[cj]["coords"] + point['population'] * np.array([point['long'], point['lat']])) / (centers[cj]['w'] + point['population'])
+            centers[ci]['n'] -= 1
+            centers[cj]['n'] += 1
+            centers[ci]['w'] -= point['population']
+            centers[cj]['w'] += point['population']
 
-#             point['cluster'] = cj
-#             swap += 1
+            point['cluster'] = cj
+            swap += 1
         
-#         if swap == 0:
-#             break
+        if swap == 0:
+            break
     
-#     data['cluster'] = [point['cluster'] for point in points]
+    data['cluster'] = [point['cluster'] for point in points]
 
-#     # Calculate SSE
-#     sse = 0
-#     for point in points:
-#         ci = point['cluster']
-#         lat1, long1 = point['lat'], point['long']
-#         lat2, long2 = centers[ci]["coords"][1], centers[ci]["coords"][0]
-#         sse += distance(lat1, long1, lat2, long2)**2 * point['population']
+    # Calculate SSE
+    sse = 0
+    for point in points:
+        ci = point['cluster']
+        lat1, long1 = point['lat'], point['long']
+        lat2, long2 = centers[ci]["coords"][1], centers[ci]["coords"][0]
+        sse += distance(lat1, long1, lat2, long2)**2 * point['population']
 
-#     return data, centers, it_num, sse
+    return data, centers, it_num, sse
 
-# def randomize_initial_cluster(data, k):
-#     indices = data.index.tolist()
-#     random.shuffle(indices)
-#     centers = []
-#     for i in indices[:k]:
-#         centers.append({"coords": np.array([data.at[i, 'long'], data.at[i, 'lat']])})
-#     return centers
+def randomize_initial_cluster(data, k):
+    indices = data.index.tolist()
+    random.shuffle(indices)
+    centers = []
+    for i in indices[:k]:
+        centers.append({"coords": np.array([data.at[i, 'long'], data.at[i, 'lat']])})
+    return centers
+
+
+def plot_clusters(data, k):
+    vals = data[['population', 'long', 'lat']].copy()
+    sampled = vals.sample(int(0.7 * len(data)))
+    centers = randomize_initial_cluster(sampled, k)
+    points, centers, iters, sse = weighted_kmeans(vals, centers, k)
+
+    # Compute total population per cluster
+    cluster_populations = points.groupby('cluster')['population'].sum().to_dict()
+
+    # Extract centroids
+    centroids = pd.DataFrame(centers)
+    clat = [x[0][1] for _, x in centroids.iterrows()]
+    clong = [x[0][0] for _, x in centroids.iterrows()]
+
+    plt.figure(figsize=(10, 10))
+    colors = [
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928',
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928',
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928',
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928',
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928',
+        '#a6cee3',
+        '#1f78b4',
+        '#b2df8a',
+        '#33a02c',
+        '#fb9a99',
+        '#e31a1c',
+        '#fdbf6f',
+        '#ff7f00',
+        '#cab2d6',
+        '#6a3d9a',
+        '#ffff99',
+        '#b15928']
+
+    # Plot each cluster as colored scatter
+    for cluster in range(k):
+        cluster_data = points[points['cluster'] == cluster]
+        plt.scatter(cluster_data['long'], cluster_data['lat'], 
+                    label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
+
+    # Plot centroids and annotate with population
+    for i in range(k):
+        plt.text(clong[i], clat[i], f"{int(i):,}", 
+                 fontsize=12, ha='center', va='bottom', color='black', fontweight='bold')
+
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.grid(linestyle='--', alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+    # Return centroids with annotations
+    centroids['clat'] = clat
+    centroids['clong'] = clong
+    centroids['population'] = centroids.index.map(cluster_populations)
+    centroids.drop(columns=['coords', 'n', 'w'], inplace=True, errors='ignore')
+    return points, centroids
 
 # def cluster_analysis(data, k_max):
 
@@ -158,119 +268,118 @@ def test_import():
 #     plt.show()
 
 
-#     def plot_clusters(filtered, k):
-#         vals = filtered[['population', 'long', 'lat']].copy()
-#         sampled = vals.sample(int(0.7 * len(filtered)))
-#         centers = randomize_initial_cluster(sampled, k)
-#         points, centers, iters, sse = weighted_kmeans(vals, centers, k)
+    def plot_clusters(data, k):
+        vals = data[['population', 'long', 'lat']].copy()
+        sampled = vals.sample(int(0.7 * len(data)))
+        centers = randomize_initial_cluster(sampled, k)
+        points, centers, iters, sse = weighted_kmeans(vals, centers, k)
 
-#         # Compute total population per cluster
-#         cluster_populations = points.groupby('cluster')['population'].sum().to_dict()
+        # Compute total population per cluster
+        cluster_populations = points.groupby('cluster')['population'].sum().to_dict()
 
-#         # Extract centroids
-#         centroids = pd.DataFrame(centers)
-#         clat = [x[0][1] for _, x in centroids.iterrows()]
-#         clong = [x[0][0] for _, x in centroids.iterrows()]
+        # Extract centroids
+        centroids = pd.DataFrame(centers)
+        clat = [x[0][1] for _, x in centroids.iterrows()]
+        clong = [x[0][0] for _, x in centroids.iterrows()]
 
-#         plt.figure(figsize=(10, 10))
-#         colors = [
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928',
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928',
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928',
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928',
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928',
-#             '#a6cee3',
-#             '#1f78b4',
-#             '#b2df8a',
-#             '#33a02c',
-#             '#fb9a99',
-#             '#e31a1c',
-#             '#fdbf6f',
-#             '#ff7f00',
-#             '#cab2d6',
-#             '#6a3d9a',
-#             '#ffff99',
-#             '#b15928']
+        plt.figure(figsize=(10, 10))
+        colors = [
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928']
 
-#         # Plot each cluster as colored scatter
-#         for cluster in range(k):
-#             cluster_data = points[points['cluster'] == cluster]
-#             plt.scatter(cluster_data['long'], cluster_data['lat'], 
-#                         label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
+        # Plot each cluster as colored scatter
+        for cluster in range(k):
+            cluster_data = points[points['cluster'] == cluster]
+            plt.scatter(cluster_data['long'], cluster_data['lat'], 
+                        label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
 
-#         # Plot centroids and annotate with population
-#         for i in range(k):
-#             plt.text(clong[i], clat[i], f"{int(i):,}", 
-#                     fontsize=12, ha='center', va='bottom', color='black', fontweight='bold')
+        # Plot centroids and annotate with population
+        for i in range(k):
+            plt.text(clong[i], clat[i], f"{int(i):,}", 
+                    fontsize=12, ha='center', va='bottom', color='black', fontweight='bold')
 
-#         plt.xlabel('Longitude')
-#         plt.ylabel('Latitude')
-#         plt.grid(linestyle='--', alpha=0.3)
-#         plt.tight_layout()
-#         plt.show()
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+        plt.grid(linestyle='--', alpha=0.3)
+        plt.tight_layout()
+        plt.show()
 
-#         # Return centroids with annotations
-#         centroids['clat'] = clat
-#         centroids['clong'] = clong
-#         centroids['population'] = centroids.index.map(cluster_populations)
-#         centroids.drop(columns=['coords', 'n', 'w'], inplace=True, errors='ignore')
-#         return points, centroids
-
+        # Return centroids with annotations
+        centroids['clat'] = clat
+        centroids['clong'] = clong
+        centroids['population'] = centroids.index.map(cluster_populations)
+        centroids.drop(columns=['coords', 'n', 'w'], inplace=True, errors='ignore')
+        return points, centroids
 # def cluster_metrics(data, centers_df):
 #     cluster_metrics = []
 
