@@ -11,3 +11,4 @@ xarray
 joblib
 rasterstats
 matplotlib
+scikit-learn

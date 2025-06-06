@@ -9,7 +9,9 @@ import rioxarray
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+import matplotlib.pyplot as plt
 import json
+from utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
 
 if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
@@ -173,9 +175,10 @@ if st_map and st_map.get("last_active_drawing"):
             mime="text/csv"
         )
 
-        pop_stats = gdf['population'].describe()
-        st.subheader("📊 Population Statistics")
-        st.write(pop_stats)
+        st.subheader("Population Density Classification")
+        density_df = classify_population_density(gdf)
+        st.dataframe(density_df)
+    
 
     else:
         st.warning("Please draw a rectangle to define the airshed.")
