@@ -14,14 +14,17 @@ import os
 
 from helpers import utils
 
-# ✅ CORRECT: set_page_config is the FIRST Streamlit command
 st.set_page_config(
-    page_title="Population Monitors",
+    page_title="Population Optimized Monitors",
+    page_icon="🌍",
     layout="wide"
 )
 
-st.title("My App Title")
+# -----------------------------------------------------------------------------
 
+# 3. Now the rest of your app can run
+st.title("Population Optimized Monitors")
+st.write("Welcome to the application.")
 
 # if "population_grid" not in st.session_state:
 #     st.session_state["population_grid"] = None
