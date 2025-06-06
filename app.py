@@ -21,8 +21,8 @@ Draw a rectangle on the map to define your airshed boundary. The app will genera
 center = [30.1575, 71.5249]  # Center on Multan
 m = folium.Map(location=center, zoom_start=10)
 from folium.plugins import Draw
-Draw(export=True, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False}).add_to(m)
-st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_drawing"])
+Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False}).add_to(m)
+st_map = st_folium(m, width=1500, height=500, returned_objects=["last_active_drawing"])
 
 def download_worldpop(country_code="PAK", year="2020"):
     base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{country_code.lower()}_ppp_2020_UNadj.tif"
@@ -33,24 +33,28 @@ def download_worldpop(country_code="PAK", year="2020"):
         return None
 
     total_size = int(response.headers.get('content-length', 0))
-    chunk_size = 1024
-    num_chunks = total_size // chunk_size + 1
+    total_mb = total_size / (1024 * 1024)  # convert bytes to megabytes
 
     temp_dir = tempfile.gettempdir()
     out_path = os.path.join(temp_dir, f"worldpop_{country_code}_{year}.tif")
 
-    progress_bar = st.progress(0)
+    chunk_size = 1024
     downloaded = 0
+    progress_bar = st.progress(0)
+    status_text = st.empty()
 
     with open(out_path, 'wb') as f:
-        for i, chunk in enumerate(response.iter_content(chunk_size)):
+        for chunk in response.iter_content(chunk_size):
             if chunk:
                 f.write(chunk)
                 downloaded += len(chunk)
-                progress = int(downloaded / total_size * 100)
-                progress_bar.progress(min(progress, 100))
+                percent = int((downloaded / total_size) * 100)
+                downloaded_mb = downloaded / (1024 * 1024)
+                status_text.text(f"⬇️ Downloaded: {downloaded_mb:.2f} MB / {total_mb:.2f} MB ({percent}%)")
+                progress_bar.progress(min(percent, 100))
 
     progress_bar.empty()
+    status_text.success("✅ Download complete.")
     return out_path
 
 
@@ -87,7 +91,7 @@ if st_map and st_map.get("last_active_drawing"):
         gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
         st.success(f"Grid generated with {len(gdf)} cells.")
 
-        st.info("Downloading WorldPop data (~500MB)...")
+        st.info("Downloading WorldPop data...")
         tif_path = download_worldpop()
         if not tif_path:
             st.stop()
