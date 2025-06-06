@@ -2,11 +2,9 @@ streamlit
 geopandas
 pandas
 numpy
+folium
+streamlit-folium
 shapely
-streamlit_folium
+requests
 rioxarray
 xarray
-tempfile
-requests
-os
-zipfile
