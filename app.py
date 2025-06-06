@@ -290,7 +290,7 @@ if st_map and st_map.get("last_active_drawing"):
             'lon': clong
         })
 
-        map_center = [centroids['lat'].mean(), centroids['lon'].mean()]
+        map_center = [centroids_df['lat'].mean(), centroids_df['lon'].mean()]
 
         # The `zoom_start` parameter controls the initial zoom level.
         m = folium.Map(location=map_center, zoom_start=11)
