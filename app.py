@@ -203,6 +203,12 @@ if st.session_state.drawing:
 
         st.success("✅ Population values computed.")
 
+        st.subheader("DEBUG: Checking Data Before Mapping")
+        st.write("Description of population column:")
+        st.write(gdf['population'].describe()) # Shows count, mean, max, etc.
+        st.write("First 5 rows of data to be mapped:")
+        st.dataframe(gdf.head())
+
         st.subheader("🗺️ Grid with Population")
 
         # Pass the necessary data to the cached function
