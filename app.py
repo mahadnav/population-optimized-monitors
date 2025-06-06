@@ -5,7 +5,7 @@ import numpy as np
 import folium
 from streamlit_folium import st_folium
 from shapely.geometry import box
-import tempfile 
+import tempfile
 import requests
 import os
 import rioxarray
@@ -27,15 +27,23 @@ st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_draw
 def download_worldpop(country_code="PAK", year="2020"):
     base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/ppp_{year}_{country_code}_1km_Aggregated.tif"
     response = requests.get(base_url, stream=True)
-    temp_tif = tempfile.NamedTemporaryFile(delete=False, suffix=".tif")
-    with open(temp_tif.name, 'wb') as out:
-        out.write(response.content)
-    return temp_tif.name
+
+    if response.status_code != 200:
+        st.error("Failed to download WorldPop raster.")
+        return None
+
+    temp_dir = tempfile.gettempdir()
+    out_path = os.path.join(temp_dir, f"worldpop_{country_code}_{year}.tif")
+
+    with open(out_path, 'wb') as f:
+        for chunk in response.iter_content(1024):
+            f.write(chunk)
+
+    return out_path
 
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
-    st.write("Drawing Geometry:", geom)
     if geom["type"] == "Feature":
         coords = geom["geometry"]["coordinates"][0]
         lons, lats = zip(*coords)
@@ -68,6 +76,9 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.info("Downloading WorldPop data (~50MB)...")
         tif_path = download_worldpop()
+        if not tif_path:
+            st.stop()
+
         st.success("WorldPop data downloaded!")
 
         da = rioxarray.open_rasterio(tif_path).squeeze()
