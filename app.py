@@ -133,7 +133,6 @@ if st_map and st_map.get("last_active_drawing"):
         csv = gdf.drop(columns="geometry").to_csv(index=False)
         st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
 
-        os.remove(tif_path)
     else:
         st.warning("Please draw a rectangle to define the airshed.")
 else:
