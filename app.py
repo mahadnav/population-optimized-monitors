@@ -317,8 +317,11 @@ if st_map and st_map.get("last_active_drawing"):
         })
 
         folium_map = create_folium_map(centroids_df)
-        st.subheader("Optimized Monitor Locations")
+
+        # --- Step 3: Display the map ---
+        st.subheader("Interactive Folium Map (Now Cached!)")
         st_folium(folium_map, width=1200, height=600)
+
 
     else:
         st.warning("Please draw a rectangle to define the airshed.")
