@@ -189,14 +189,16 @@ if st_map and st_map.get("last_active_drawing"):
         linewidth=0.5, 
         bins=45)
 
-        st.plotly_chart(sns.displot(
-            data=density_df, 
-            x='population', 
-            hue='Density',
-            palette='inferno', 
-            edgecolor='k', 
-            linewidth=0.5, 
-            bins=45))
+        fig = sns.displot(
+        data=density_df, 
+        x='population', 
+        hue='Density',
+        palette='inferno', 
+        edgecolor='k', 
+        linewidth=0.5, 
+        bins=45)
+
+        st.pyplot(fig)
     
 
     else:
