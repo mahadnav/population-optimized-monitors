@@ -109,7 +109,7 @@ if st_map and st_map.get("last_active_drawing"):
         st.success("✅ Population values computed.")
 
         # --- Displaying the Grid with Population Data ---
-        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=6)
+        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
         
         # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
         gdf = gdf.fillna(0).reset_index(drop=True)
@@ -164,7 +164,8 @@ if st_map and st_map.get("last_active_drawing"):
         gdf.fillna(0, inplace=True)
         gdf = gdf.loc[~(gdf['population']==0)].reset_index(drop=True)
         gdf = gdf[["id", 'long', 'lat', 'row_index', 'col_index', 'population']]
-        
+        csv = gdf.to_csv(index=False).encode('utf-8')
+
         st.download_button(
             "📥 Download Population Grid CSV",
             data=csv,
