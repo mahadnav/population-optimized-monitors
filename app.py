@@ -25,6 +25,7 @@ st.set_page_config(
 # 3. Now the rest of your app can run
 st.title("Population Optimized Monitors")
 st.write("Welcome to the application.")
+st.write(utils.test_function())
 
 # if "population_grid" not in st.session_state:
 #     st.session_state["population_grid"] = None
