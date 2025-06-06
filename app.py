@@ -5,7 +5,6 @@ import numpy as np
 import folium
 from streamlit_folium import st_folium
 from shapely.geometry import box
-from rasterio.mask import mask
 import rasterio
 import tempfile
 import requests
