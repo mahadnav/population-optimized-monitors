@@ -35,6 +35,7 @@ def download_worldpop(country_code="PAK", year="2020"):
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
+    st.write("Drawing Geometry:", geom)
     if geom["type"] == "Feature":
         coords = geom["geometry"]["coordinates"][0]
         lons, lats = zip(*coords)
