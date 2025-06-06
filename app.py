@@ -18,15 +18,15 @@ m = folium.Map(location=center, zoom_start=10)
 
 # Add drawing controls
 from folium.plugins import Draw
-Draw(export=True, draw_options={'polygon': True, 'circle': False, 'marker': False}).add_to(m)
+Draw(export=True, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False}).add_to(m)
 
 st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_drawing"])
 
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
-    st.write("You drew a shape:", geom) 
     if geom["type"] == "Polygon":
+        st.write("You drew a shape:", geom["type"]) 
         coords = geom["coordinates"][0]
         lons, lats = zip(*coords)
         min_lon, max_lon = min(lons), max(lons)
