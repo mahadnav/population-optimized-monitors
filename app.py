@@ -41,9 +41,6 @@ def download_worldpop(country_code="PAK", year="2020"):
 
     return out_path
 
-https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/PAK/pak_ppp_2020_UNadj.tif
-
-
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
