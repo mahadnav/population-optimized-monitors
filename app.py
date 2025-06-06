@@ -180,15 +180,6 @@ if st_map and st_map.get("last_active_drawing"):
         density_df = classify_population_density(gdf.copy())
         st.dataframe(density_df)
 
-        sns.displot(
-        data=density_df, 
-        x='population', 
-        hue='Density',
-        palette='inferno', 
-        edgecolor='k', 
-        linewidth=0.5, 
-        bins=45)
-
         fig = sns.displot(
         data=density_df, 
         x='population', 
@@ -196,7 +187,9 @@ if st_map and st_map.get("last_active_drawing"):
         palette='inferno', 
         edgecolor='k', 
         linewidth=0.5, 
-        bins=45)
+        bins=45,
+        kind='hist')
+        fig.figure.set_size_inches(10, 6)
 
         st.pyplot(fig)
     
