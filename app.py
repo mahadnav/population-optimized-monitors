@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pydeck as pdk
 import json
 import os
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
@@ -283,12 +284,46 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
-        points['color'] = points['cluster'].apply(lambda x: colors[x])
-        st.map(points,
-            latitude='lat',
-            longitude='long',
-            color='color',
-            size=40) 
+        # 1. Define the initial camera view for the map
+        view_state = pdk.ViewState(
+            latitude=centroids['lat'].mean(),
+            longitude=centroids['long'].mean(),
+            zoom=11,
+            pitch=45
+        )
+
+        # 2. Define the layer for the original data points
+        point_layer = pdk.Layer(
+            'ScatterplotLayer',
+            data=points,
+            get_position='[long, lat]',
+            get_color='[51, 87, 255, 100]', # Blue with some transparency
+            get_radius=50
+        )
+
+        # 3. Define a new, separate layer for the centroids
+        centroid_layer = pdk.Layer(
+            'ScatterplotLayer',
+            data=centroids,
+            get_position='[long, lat]',
+            get_color='[255, 0, 0, 255]',  # Solid Red
+            get_radius=150, # Make centroids bigger to stand out
+            pickable=True
+        )
+
+        # 4. Define a tooltip for the centroids
+        tooltip = {
+            "html": "<b>{name}</b><br/>Lat: {lat}<br/>Lon: {long}",
+            "style": {"backgroundColor": "maroon", "color": "white"}
+        }
+
+        # 5. Create the Deck object with a list of layers and render it
+        st.pydeck_chart(pdk.Deck(
+            layers=[point_layer, centroid_layer], # Pass both layers here
+            initial_view_state=view_state,
+            map_style='mapbox://styles/mapbox/light-v10',
+            tooltip=tooltip
+        ))
 
     
 
