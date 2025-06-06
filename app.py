@@ -109,19 +109,11 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.success("✅ Population values computed.")
 
-        gdf = gdf.drop(columns=["geometry"])
-        gdf['long'], gdf['lat'] = (gdf['left']+ gdf['right'])/2, (gdf['top'] + gdf['bottom'])/2
-        gdf.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
-        gdf.fillna(0, inplace=True)
-        gdf = gdf.loc[~(gdf['population']==0)].reset_index(drop=True)
-        gdf = gdf[["id", 'long', 'lat', 'row_index', 'col_index', 'population',]]
-        st.dataframe(gdf.head())
-
         # --- Displaying the Grid with Population Data ---
-        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=10)
+        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=6)
         
         # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
-        gdf = gdf.reset_index(drop=True)
+        gdf = gdf.fillna(0).reset_index(drop=True)
         gdf['str_id'] = gdf['id'].astype(str)
         geojson_data = json.loads(gdf.to_json())
 
@@ -160,6 +152,14 @@ if st_map and st_map.get("last_active_drawing"):
         ).add_to(m_grid)
 
         folium.LayerControl().add_to(m_grid)
+
+        gdf = gdf.drop(columns=["geometry"])
+        gdf['long'], gdf['lat'] = (gdf['left']+ gdf['right'])/2, (gdf['top'] + gdf['bottom'])/2
+        gdf.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
+        gdf.fillna(0, inplace=True)
+        gdf = gdf.loc[~(gdf['population']==0)].reset_index(drop=True)
+        gdf = gdf[["id", 'long', 'lat', 'row_index', 'col_index', 'population']]
+        csv = gdf.to_csv(index=False).encode('utf-8')
 
         st.subheader("🗺️ Grid with Population")
         st_folium(m_grid, width=1500, height=500)
