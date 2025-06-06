@@ -286,8 +286,8 @@ if st_map and st_map.get("last_active_drawing"):
 
         # 1. Define the initial camera view for the map
         view_state = pdk.ViewState(
-            latitude=centroids['lat'].mean(),
-            longitude=centroids['long'].mean(),
+            latitude=centroids['clat'].mean(),
+            longitude=centroids['clong'].mean(),
             zoom=11,
             pitch=45
         )
@@ -296,7 +296,7 @@ if st_map and st_map.get("last_active_drawing"):
         point_layer = pdk.Layer(
             'ScatterplotLayer',
             data=points,
-            get_position='[long, lat]',
+            get_position='[clong, clat]',
             get_color='[51, 87, 255, 100]', # Blue with some transparency
             get_radius=50
         )
@@ -305,7 +305,7 @@ if st_map and st_map.get("last_active_drawing"):
         centroid_layer = pdk.Layer(
             'ScatterplotLayer',
             data=centroids,
-            get_position='[long, lat]',
+            get_position='[clong, clat]',
             get_color='[255, 0, 0, 255]',  # Solid Red
             get_radius=150, # Make centroids bigger to stand out
             pickable=True
