@@ -9,6 +9,8 @@ from sklearn.cluster import KMeans
 def classify_population_density(data):
     kmeans = KMeans(n_clusters=2, random_state=42)
     data['cluster'] = kmeans.fit_predict(data[['population']])
+    density_mapping = {0: 'Low', 1: 'High'}
+    data['Density'] = data['cluster'].map(density_mapping)
     return data
 
 # You can also keep your test function here
