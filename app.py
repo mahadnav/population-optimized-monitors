@@ -285,8 +285,11 @@ if st_map and st_map.get("last_active_drawing"):
             '#b15928']
 
 
-        st.dataframe(centroids)
-        
+        centroids_df = pd.DataFrame({
+            'lat': clat,
+            'lon': clong
+        })
+
         map_center = [centroids['lat'].mean(), centroids['lon'].mean()]
 
         # The `zoom_start` parameter controls the initial zoom level.
