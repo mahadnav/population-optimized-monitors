@@ -15,36 +15,35 @@ import json
 import os
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
+if "drawing" not in st.session_state:
+    st.session_state.drawing = None
 if "population_grid" not in st.session_state:
-    st.session_state["population_grid"] = None
+    st.session_state.population_grid = None
 if "population_computed" not in st.session_state:
-    st.session_state["population_computed"] = False
+    st.session_state.population_computed = False
 
+# --- KEY CHANGE 2: Cache the creation of BOTH maps ---
+# This is your original cached function for the results map. IT IS CORRECT.
 @st.cache_data
-def create_folium_map(dataframe):
-    """
-    Creates a Folium map with CircleMarkers for each point in the dataframe.
-    This function is cached, so the map is only created once.
-    """
-    st.write("--- Running create_folium_map() ---") # This will only print ONCE
-
-    # Calculate the center of the map
+def create_results_map(dataframe):
+    st.write("--- Creating Results Map (Cached) ---")
     map_center = [dataframe['lat'].mean(), dataframe['lon'].mean()]
     m = folium.Map(location=map_center, zoom_start=11)
-
-    # Loop through the data to add points
     for index, row in dataframe.iterrows():
         folium.CircleMarker(
             location=[row['lat'], row['lon']],
-            radius=8,
-            color='#FF0000',
-            fill=True,
-            fill_color='#FF0000',
-            fill_opacity=0.6,
+            radius=8, color='#FF0000', fill=True, fill_color='#FF0000', fill_opacity=0.6,
             popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
         ).add_to(m)
-    
-    # Return the completed map object
+    return m
+
+# This is a NEW cached function for the initial drawing map.
+# Using @st.cache_resource is often better for complex objects like maps with plugins.
+@st.cache_resource
+def create_drawing_map():
+    st.write("--- Creating Drawing Map (Cached) ---")
+    m = folium.Map(location=[30.1575, 71.5249], zoom_start=10) # Centered on Multan
+    Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
     return m
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
@@ -54,12 +53,15 @@ st.markdown("""
 Draw a rectangle on the map to define your airshed boundary.
 """)
 
-# --- Initial Map Display ---
-center = [30.1575, 71.5249]  # Center on Multan, Pakistan
-m = folium.Map(location=center, zoom_start=10)
-from folium.plugins import Draw
-Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
-st_map = st_folium(m, width=1500, height=500, returned_objects=["last_active_drawing"])
+# Get the cached drawing map
+drawing_map = create_drawing_map()
+# Display it and capture the output
+st_map_output = st_folium(drawing_map, width=1500, height=500, returned_objects=["last_active_drawing"])
+
+# --- KEY CHANGE 3: Save the drawing to Session State ---
+# If the user just finished a drawing, save it.
+if st_map_output and st_map_output.get("last_active_drawing"):
+    st.session_state.drawing = st_map_output["last_active_drawing"]
 
 def get_worldpop_data():
     """Handles the upload of the WorldPop GeoTIFF file."""
@@ -69,8 +71,9 @@ def get_worldpop_data():
         st.stop()
     return uploaded_file
 
-if st_map and st_map.get("last_active_drawing"):
-    geom = st_map["last_active_drawing"]
+if st.session_state.drawing:
+    st.info("Airshed boundary captured! You can now proceed.")
+    geom = st.session_state.drawing
     if geom and geom.get("geometry") and geom["geometry"]["type"] == "Polygon":
         coords = geom["geometry"]["coordinates"][0]
         lons, lats = zip(*coords)
@@ -316,10 +319,9 @@ if st_map and st_map.get("last_active_drawing"):
             'lon': clong
         })
 
-        folium_map = create_folium_map(centroids_df)
+        results_folium_map = create_results_map(centroids_df)
         st.subheader("Optimized Monitor Locations")
-        st_folium(folium_map, width=1200, height=600)
-
+        st_folium(results_folium_map, width=1200, height=600)
 
     else:
         st.warning("Please draw a rectangle to define the airshed.")
