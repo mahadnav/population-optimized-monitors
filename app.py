@@ -9,9 +9,7 @@ from shapely.geometry import box
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid")
 
-st.markdown("""
-Draw a rectangle on the map to define your airshed boundary. The app will generate a 0.01° x 0.01° spatial resolution grid within the rectangle.
-""")
+st.markdown("Draw a rectangle on the map to define your airshed boundary.")
 
 # Default map center
 center = [30.1575, 71.5249]  # Rough center of Multan
