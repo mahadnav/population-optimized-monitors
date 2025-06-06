@@ -110,6 +110,14 @@ if st_map and st_map.get("last_active_drawing"):
         st.success("✅ Population values computed.")
         st.dataframe(gdf.drop(columns="geometry").head())
 
+        csv = gdf.drop(columns=["geometry", "str_id"]).to_csv(index=False).encode('utf-8')
+        csv['long'], csv['lat'] = (csv['left']+ csv['right'])/2, (csv['top'] + csv['bottom'])/2
+        csv.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
+        csv.fillna(0, inplace=True)
+        csv = csv.loc[~(csv['population']==0)].reset_index(drop=True)
+        csv = csv[['long', 'lat', 'population', 'row_index', 'col_index']]
+        st.write(csv.head())
+
         # --- Displaying the Grid with Population Data ---
         m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=10)
         
@@ -156,14 +164,6 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("🗺️ Grid with Population")
         st_folium(m_grid, width=1500, height=500)
-
-        # --- Download Functionality ---
-        csv = gdf.drop(columns=["geometry", "str_id"]).to_csv(index=False).encode('utf-8')
-        csv['long'], csv['lat'] = (csv['left']+ csv['right'])/2, (csv['top'] + csv['bottom'])/2
-        csv.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
-        csv.fillna(0, inplace=True)
-        csv = csv.loc[~(csv['population']==0)].reset_index(drop=True)
-        csv = csv[['long', 'lat', 'population', 'row_index', 'col_index']]
 
         st.download_button(
             "📥 Download Population Grid CSV",
