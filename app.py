@@ -5,11 +5,11 @@ import numpy as np
 import folium
 from streamlit_folium import st_folium
 from shapely.geometry import box
-import rasterio
 import tempfile
 import requests
 import os
-import zipfile
+import rioxarray
+import xarray as xr
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -47,7 +47,6 @@ if st_map and st_map.get("last_active_drawing"):
 
         records = []
         id_counter = 1
-        grid_geoms = []
         for i, lat in enumerate(lat_points):
             for j, lon in enumerate(lon_points):
                 geom_box = box(lon, lat, lon + resolution, lat + resolution)
@@ -61,31 +60,30 @@ if st_map and st_map.get("last_active_drawing"):
                     "col_index": j,
                     "geometry": geom_box
                 })
-                grid_geoms.append(geom_box)
                 id_counter += 1
 
         gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
         st.success(f"Grid generated with {len(gdf)} cells.")
 
-        # Download WorldPop and crop to bounds
         st.info("Downloading WorldPop data (~50MB)...")
         tif_path = download_worldpop()
         st.success("WorldPop data downloaded!")
 
+        da = rioxarray.open_rasterio(tif_path).squeeze()
+        da = da.rio.write_crs("EPSG:4326")
+
         population = []
-        with rasterio.open(tif_path) as src:
-            for geom in gdf.geometry:
-                try:
-                    out_image, _ = mask(src, [geom.__geo_interface__], crop=True, all_touched=True)
-                    total = out_image[out_image > 0].sum() if out_image.size > 0 else 0
-                except Exception:
-                    total = 0
-                population.append(total)
+        for geom in gdf.geometry:
+            try:
+                clipped = da.rio.clip([geom.__geo_interface__], gdf.crs, drop=True, all_touched=True)
+                total = float(clipped.where(clipped > 0).sum().values)
+            except Exception:
+                total = 0
+            population.append(total)
 
         gdf["_sum"] = population
         st.dataframe(gdf.drop(columns="geometry").head())
 
-        # Map
         m_grid = folium.Map(location=[(min_lat + max_lat)/2, (min_lon + max_lon)/2], zoom_start=11)
         for _, row in gdf.iterrows():
             rect = [[row['bottom'], row['left']], [row['top'], row['right']]]
@@ -94,11 +92,9 @@ if st_map and st_map.get("last_active_drawing"):
         st.subheader("🗺️ Grid with Population")
         st_folium(m_grid, width=700, height=500)
 
-        # Download CSV
         csv = gdf.drop(columns="geometry").to_csv(index=False)
         st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
 
-        # Cleanup
         os.remove(tif_path)
     else:
         st.warning("Please draw a rectangle to define the airshed.")

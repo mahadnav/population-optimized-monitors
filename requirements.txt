@@ -4,7 +4,8 @@ pandas
 numpy
 shapely
 streamlit_folium
-rasterio
+rioxarray
+xarray
 tempfile
 requests
 os
