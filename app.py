@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import folium
 from streamlit_folium import st_folium
-from folium.plugins import Draw
 from shapely.geometry import box
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
@@ -16,97 +15,37 @@ import json
 import os
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
-if "drawing" not in st.session_state:
-    st.session_state.drawing = None
 if "population_grid" not in st.session_state:
-    st.session_state.population_grid = None
+    st.session_state["population_grid"] = None
 if "population_computed" not in st.session_state:
-    st.session_state.population_computed = False
+    st.session_state["population_computed"] = False
 
-# --- KEY CHANGE 2: Cache the creation of BOTH maps ---
-# This is your original cached function for the results map. IT IS CORRECT.
 @st.cache_data
-def create_results_map(dataframe):
-    st.write("--- Creating Results Map (Cached) ---")
+def create_folium_map(dataframe):
+    """
+    Creates a Folium map with CircleMarkers for each point in the dataframe.
+    This function is cached, so the map is only created once.
+    """
+    st.write("--- Running create_folium_map() ---") # This will only print ONCE
+
+    # Calculate the center of the map
     map_center = [dataframe['lat'].mean(), dataframe['lon'].mean()]
     m = folium.Map(location=map_center, zoom_start=11)
+
+    # Loop through the data to add points
     for index, row in dataframe.iterrows():
         folium.CircleMarker(
             location=[row['lat'], row['lon']],
-            radius=8, color='#FF0000', fill=True, fill_color='#FF0000', fill_opacity=0.6,
+            radius=8,
+            color='#FF0000',
+            fill=True,
+            fill_color='#FF0000',
+            fill_opacity=0.6,
             popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
         ).add_to(m)
-    return m
-
-# This is a NEW cached function for the initial drawing map.
-# Using @st.cache_resource is often better for complex objects like maps with plugins.
-@st.cache_resource
-def create_drawing_map():
-    st.write("--- Creating Drawing Map (Cached) ---")
-    m = folium.Map(location=[30.1575, 71.5249], zoom_start=10) # Centered on Multan
-    Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
-    return m
-
-@st.cache_resource
-def create_population_grid_map(_gdf, _map_bounds):
-    """
-    Creates and caches the Folium choropleth map of the population grid.
-    As a resource, this will be created only once per session.
-    """
-    st.write("--- Creating Population Grid Map as a Resource (This will only print once!) ---")
-
-    # Unpack map bounds
-    min_lat, max_lat, min_lon, max_lon = _map_bounds
-
-    # Create the base map
-    m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
     
-    # --- The rest of your function remains exactly the same ---
-    gdf_copy = _gdf.copy().fillna(0).reset_index(drop=True)
-    gdf_copy['str_id'] = gdf_copy['id'].astype(str)
-    geojson_data = json.loads(gdf_copy.to_json())
-
-    for i, feature in enumerate(geojson_data['features']):
-        feature['id'] = gdf_copy.loc[i, 'str_id']
-
-    pop_min = gdf_copy['population'].min()
-    pop_max = gdf_copy['population'].max()
-    colormap = cm.get_cmap('plasma')
-    norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
-
-    def style_function(feature):
-        pop_series = gdf_copy.loc[gdf_copy['str_id'] == feature['id'], 'population']
-        if pop_series.empty:
-            return {'fillOpacity': 0, 'weight': 0}
-        
-        pop = pop_series.values[0]
-
-        if pop == 0 or np.isnan(pop):
-            return {'fillOpacity': 0, 'weight': 0}
-        else:
-            color = colors.rgb2hex(colormap(norm(pop))[:3])
-            return {
-                'fillColor': color, 'color': 'black',
-                'weight': 0.5, 'fillOpacity': 0.7,
-            }
-
-    folium.GeoJson(
-        geojson_data,
-        name='Population Grid',
-        style_function=style_function,
-        tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
-    ).add_to(m_grid)
-
-    folium.LayerControl().add_to(m_grid)
-
-    return m_grid
-
-
-
-
-
-
-
+    # Return the completed map object
+    return m
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -115,15 +54,12 @@ st.markdown("""
 Draw a rectangle on the map to define your airshed boundary.
 """)
 
-# Get the cached drawing map
-drawing_map = create_drawing_map()
-# Display it and capture the output
-st_map_output = st_folium(drawing_map, width=1500, height=500, returned_objects=["last_active_drawing"])
-
-# --- KEY CHANGE 3: Save the drawing to Session State ---
-# If the user just finished a drawing, save it.
-if st_map_output and st_map_output.get("last_active_drawing"):
-    st.session_state.drawing = st_map_output["last_active_drawing"]
+# --- Initial Map Display ---
+center = [30.1575, 71.5249]  # Center on Multan, Pakistan
+m = folium.Map(location=center, zoom_start=10)
+from folium.plugins import Draw
+Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
+st_map = st_folium(m, width=1500, height=500, returned_objects=["last_active_drawing"])
 
 def get_worldpop_data():
     """Handles the upload of the WorldPop GeoTIFF file."""
@@ -133,9 +69,8 @@ def get_worldpop_data():
         st.stop()
     return uploaded_file
 
-if st.session_state.drawing:
-    st.info("Airshed boundary captured! You can now proceed.")
-    geom = st.session_state.drawing
+if st_map and st_map.get("last_active_drawing"):
+    geom = st_map["last_active_drawing"]
     if geom and geom.get("geometry") and geom["geometry"]["type"] == "Polygon":
         coords = geom["geometry"]["coordinates"][0]
         lons, lats = zip(*coords)
@@ -203,22 +138,55 @@ if st.session_state.drawing:
 
         st.success("✅ Population values computed.")
 
-        st.subheader("DEBUG: Checking Data Before Mapping")
-        st.write("Description of population column:")
-        st.write(gdf['population'].describe()) # Shows count, mean, max, etc.
-        st.write("First 5 rows of data to be mapped:")
-        st.dataframe(gdf.head())
+        # --- Displaying the Grid with Population Data ---
+        m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
+        
+        # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
+        gdf = gdf.fillna(0).reset_index(drop=True)
+        gdf['str_id'] = gdf['id'].astype(str)
+        geojson_data = json.loads(gdf.to_json())
 
-        st.subheader("🗺️ Grid with Population")
+        for i, feature in enumerate(geojson_data['features']):
+            feature['id'] = gdf.loc[i, 'str_id']
 
-        # Pass the necessary data to the cached function
-        map_bounds = (min_lat, max_lat, min_lon, max_lon)
-        population_map = create_population_grid_map(gdf, map_bounds)
+        # Create colormap for population values
+        pop_min = gdf['population'].min()
+        pop_max = gdf['population'].max()
+        colormap = cm.get_cmap('plasma')
 
-        # Display the cached map. This is now fast and won't cause a loop.
-        st_folium(population_map, width=1500, height=500)
+        norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
+
+        def style_function(feature):
+            pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
+            if pop == 0 or pop is None or np.isnan(pop):
+                # Fully transparent for zero population
+                return {
+                    'fillOpacity': 0,
+                    'weight': 0
+                }
+            else:
+                color = colors.rgb2hex(colormap(norm(pop))[:3])
+                return {
+                    'fillColor': color,
+                    'color': 'black',
+                    'weight': 0.5,
+                    'fillOpacity': 0.7,
+                }
+
+        folium.GeoJson(
+            geojson_data,
+            name='Population Grid',
+            style_function=style_function,
+            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
+        ).add_to(m_grid)
+
+        folium.LayerControl().add_to(m_grid)
 
         csv = gdf.to_csv(index=False).encode('utf-8')
+
+        st.subheader("🗺️ Grid with Population")
+        st_folium(m_grid, width=1500, height=500)
+
 
         gdf = gdf.drop(columns=["geometry"])
         gdf['long'], gdf['lat'] = (gdf['left']+ gdf['right'])/2, (gdf['top'] + gdf['bottom'])/2
@@ -348,9 +316,9 @@ if st.session_state.drawing:
             'lon': clong
         })
 
-        results_folium_map = create_results_map(centroids_df)
+        folium_map = create_folium_map(centroids_df)
         st.subheader("Optimized Monitor Locations")
-        st_folium(results_folium_map, width=1200, height=600)
+        st_folium(folium_map, width=1200, height=600)
 
     else:
         st.warning("Please draw a rectangle to define the airshed.")
