@@ -289,7 +289,7 @@ if st_map and st_map.get("last_active_drawing"):
             fig = plt.scatter(cluster_data['long'], cluster_data['lat'], 
                         label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
             
-        st.plotly_chart(fig, use_container_width=False)
+        st.pyplot(fig)
 
     
 
