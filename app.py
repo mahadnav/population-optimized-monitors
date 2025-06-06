@@ -106,7 +106,6 @@ if st_map and st_map.get("last_active_drawing"):
             gdf = st.session_state["population_grid"]
             st.success("✅ Population values retrieved from session.")
 
-
         st.success("✅ Population values computed.")
 
         # --- Displaying the Grid with Population Data ---
@@ -153,17 +152,19 @@ if st_map and st_map.get("last_active_drawing"):
 
         folium.LayerControl().add_to(m_grid)
 
+        csv = gdf.to_csv(index=False).encode('utf-8')
+
+        st.subheader("🗺️ Grid with Population")
+        st_folium(m_grid, width=1500, height=500)
+
+
         gdf = gdf.drop(columns=["geometry"])
         gdf['long'], gdf['lat'] = (gdf['left']+ gdf['right'])/2, (gdf['top'] + gdf['bottom'])/2
         gdf.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
         gdf.fillna(0, inplace=True)
         gdf = gdf.loc[~(gdf['population']==0)].reset_index(drop=True)
         gdf = gdf[["id", 'long', 'lat', 'row_index', 'col_index', 'population']]
-        csv = gdf.to_csv(index=False).encode('utf-8')
-
-        st.subheader("🗺️ Grid with Population")
-        st_folium(m_grid, width=1500, height=500)
-
+        
         st.download_button(
             "📥 Download Population Grid CSV",
             data=csv,
