@@ -47,7 +47,7 @@ def create_drawing_map():
     Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
     return m
 
-@st.cache_data
+@st.cache_data(hash_funcs={gpd.GeoDataFrame: id})
 def create_population_grid_map(gdf, map_bounds):
     """
     Creates and caches the Folium choropleth map of the population grid.
