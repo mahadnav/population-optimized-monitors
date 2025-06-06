@@ -283,13 +283,12 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
-        # Plot each cluster as colored scatter
-        for cluster in range(11):
-            cluster_data = points[points['cluster'] == cluster]
-            fig = plt.scatter(cluster_data['long'], cluster_data['lat'], 
-                        label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
-            
-        st.pyplot(fig)
+        points['color'] = points['cluster'].apply(lambda x: colors[x])
+        st.map(points,
+            latitude='lat',
+            longitude='long',
+            color='color',
+            size=40) 
 
     
 
