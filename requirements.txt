@@ -13,3 +13,4 @@ rasterstats
 matplotlib
 scikit-learn
 haversine
+seaborn

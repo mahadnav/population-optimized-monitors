@@ -9,6 +9,7 @@ from rasterstats import zonal_stats
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import seaborn as sns
 import json
 import os
 from helpers.utils import classify_population_density
@@ -178,6 +179,16 @@ if st_map and st_map.get("last_active_drawing"):
         st.subheader("Population Density Classification")
         density_df = classify_population_density(gdf.copy())
         st.dataframe(density_df)
+
+        sns.displot(
+        data=density_df, 
+        x='population', 
+        hue='Density',
+        palette='inferno', 
+        edgecolor='k', 
+        linewidth=0.5, 
+        bins=45
+    )
     
 
     else:
