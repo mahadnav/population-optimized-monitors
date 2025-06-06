@@ -94,6 +94,7 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.info("Downloading WorldPop data...")
         tif_path = get_worldpop()
+        st.write(f"WorldPop data saved to: {tif_path}")
         if not tif_path:
             st.stop()
 
