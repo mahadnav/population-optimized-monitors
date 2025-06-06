@@ -311,10 +311,10 @@ if st_map and st_map.get("last_active_drawing"):
             ).add_to(m)
 
 
-        # --- Step 5: Display the Map in Streamlit ---
-        # Use st_folium to render the Folium map object.
-        st.subheader("Interactive Folium Map")
-        st_data = st_folium(m, width=1200, height=600)
+    # --- Step 5: Display the Map in Streamlit ---
+    # Use st_folium to render the Folium map object.
+    st.subheader("Interactive Folium Map")
+    st_data = st_folium(m, width=1200, height=600)
 
     
 
