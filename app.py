@@ -25,7 +25,9 @@ except Exception as e:
 # --- END DEBUGGING LINES ---
 
 
-from helpers.utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
+# from helpers.utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
+from helpers import utils
+
 
 if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
