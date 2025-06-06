@@ -20,32 +20,6 @@ if "population_grid" not in st.session_state:
 if "population_computed" not in st.session_state:
     st.session_state["population_computed"] = False
 
-@st.cache_data
-def create_folium_map(dataframe):
-    """
-    Creates a Folium map with CircleMarkers for each point in the dataframe.
-    This function is cached, so the map is only created once.
-    """
-    st.write("--- Running create_folium_map() ---") # This will only print ONCE
-
-    # Calculate the center of the map
-    map_center = [dataframe['lat'].mean(), dataframe['lon'].mean()]
-    m = folium.Map(location=map_center, zoom_start=11)
-
-    # Loop through the data to add points
-    for index, row in dataframe.iterrows():
-        folium.CircleMarker(
-            location=[row['lat'], row['lon']],
-            radius=8,
-            color='#FF0000',
-            fill=True,
-            fill_color='#FF0000',
-            fill_opacity=0.6,
-            popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
-        ).add_to(m)
-    
-    # Return the completed map object
-    return m
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -316,12 +290,33 @@ if st_map and st_map.get("last_active_drawing"):
             'lon': clong
         })
 
-        folium_map = create_folium_map(centroids_df)
+        map_center = [centroids_df['lat'].mean(), centroids_df['lon'].mean()]
 
-        # --- Step 3: Display the map ---
-        st.subheader("Interactive Folium Map (Now Cached!)")
-        st_folium(folium_map, width=1200, height=600)
+        # The `zoom_start` parameter controls the initial zoom level.
+        m = folium.Map(location=map_center, zoom_start=11)
 
+
+        # --- Step 4: Add Points to the Map ---
+        # We will loop through each row in our DataFrame.
+        for index, row in centroids_df.iterrows():
+            # For each point, add a CircleMarker.
+            folium.CircleMarker(
+                location=[row['lat'], row['lon']],
+                radius=8,  # The size of the circle marker
+                color='#FF0000',  # The color of the circle's border (red)
+                fill=True,
+                fill_color='#FF0000',  # The color inside the circle
+                fill_opacity=0.6,
+                popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
+            ).add_to(m)
+
+
+        # --- Step 5: Display the Map in Streamlit ---
+        # Use st_folium to render the Folium map object.
+        st.subheader("Interactive Folium Map")
+        st_data = st_folium(m, width=1200, height=600)
+
+    
 
     else:
         st.warning("Please draw a rectangle to define the airshed.")
