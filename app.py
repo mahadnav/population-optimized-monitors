@@ -124,7 +124,7 @@ if st_map and st_map.get("last_active_drawing"):
         # Create colormap for population values
         pop_min = gdf['population'].min()
         pop_max = gdf['population'].max()
-        colormap = cm.get_cmap('YlOrRd')
+        colormap = cm.get_cmap('plasma')
 
         norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
 
@@ -159,6 +159,13 @@ if st_map and st_map.get("last_active_drawing"):
 
         # --- Download Functionality ---
         csv = gdf.drop(columns=["geometry", "str_id"]).to_csv(index=False).encode('utf-8')
+        csv.drop(columns='id', inplace=True)
+        csv['long'], csv['lat'] = (csv['left']+ csv['right'])/2, (csv['top'] + csv['bottom'])/2
+        csv.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
+        csv.fillna(0, inplace=True)
+        csv = csv.loc[~(csv['population']==0)].reset_index(drop=True)
+        csv = csv[['long', 'lat', 'population', 'row_index', 'col_index']]
+
         st.download_button(
             "📥 Download Population Grid CSV",
             data=csv,
