@@ -176,7 +176,7 @@ if st_map and st_map.get("last_active_drawing"):
         )
 
         st.subheader("Population Density Classification")
-        density_df = classify_population_density(gdf)
+        density_df = classify_population_density(gdf.copy())
         st.dataframe(density_df)
     
 
