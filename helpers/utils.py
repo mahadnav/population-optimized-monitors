@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
 def classify_population_density(data):
-    np.where(data['population'] < 5000, 0, 1, out=data['cluster'])
+    data['cluster'] = np.where(data['population'] < 5000, 0, 1)
     density_mapping = {0: 'Low', 1: 'High'}
     data['Density'] = data['cluster'].map(density_mapping)
     return data
