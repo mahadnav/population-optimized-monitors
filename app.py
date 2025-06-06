@@ -107,19 +107,22 @@ if st_map and st_map.get("last_active_drawing"):
         st.success("WorldPop data downloaded!")
 
         da = rioxarray.open_rasterio(tif_path).squeeze()
-        da = da.rio.write_crs   ("EPSG:4326")
+        da = da.rio.write_crs("EPSG:4326")
         st.write(f"Raster CRS: {da}")
 
         population = []
-        for geom in gdf.geometry:
+        for i, geom in enumerate(gdf.geometry):
             try:
                 clipped = da.rio.clip([geom.__geo_interface__], gdf.crs, drop=True, all_touched=True)
-                total = float(clipped.where(clipped > 0).sum().values)
-            except Exception:
+                # Guard against fully masked array
+                total = float(clipped.where(clipped.notnull()).sum().values)
+            except Exception as e:
+                st.warning(f"Failed to clip geometry {i}: {e}")
                 total = 0
             population.append(total)
 
         gdf["_sum"] = population
+
         st.dataframe(gdf.drop(columns="geometry").head())
 
         m_grid = folium.Map(location=[(min_lat + max_lat)/2, (min_lon + max_lon)/2], zoom_start=11)
