@@ -113,6 +113,7 @@ if st_map and st_map.get("last_active_drawing"):
         def extract_population(geom):
             try:
                 clipped = da.rio.clip([geom.__geo_interface__], gdf.crs, drop=True, all_touched=True)
+                st.write(f"Processing geometry: {clipped}")
                 return float(clipped.where(clipped.notnull()).sum().values)
             except Exception:
                 return 0.0
