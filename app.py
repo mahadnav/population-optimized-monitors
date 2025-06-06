@@ -5,7 +5,6 @@ import numpy as np
 import folium
 from streamlit_folium import st_folium
 from shapely.geometry import box
-import rioxarray
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
 import matplotlib.colors as colors
