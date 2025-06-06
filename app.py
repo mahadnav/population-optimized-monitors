@@ -25,8 +25,9 @@ st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_draw
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
+    st.write("You drew a shape:", geom["type"]) 
     if geom["type"] == "Polygon":
-        st.write("You drew a shape:", geom["type"]) 
+        
         coords = geom["coordinates"][0]
         lons, lats = zip(*coords)
         min_lon, max_lon = min(lons), max(lons)
