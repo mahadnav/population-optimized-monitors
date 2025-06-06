@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 import os
-from helpers.utils import classify_population_density, plot_clusters
+from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
 if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
@@ -193,7 +193,104 @@ if st_map and st_map.get("last_active_drawing"):
         fig.set_axis_labels("Population Density", "Frequency")
         st.pyplot(fig)
 
-        plot_clusters(density_df, k=10)
+
+        st.subheader("Cluster Analysis with Weighted K-Means")
+
+        vals = density_df[['population', 'long', 'lat']].copy()
+        sampled = vals.sample(int(0.7 * len(density_df)))
+        centers = randomize_initial_cluster(sampled, 11)
+        points, centers, iters, sse = weighted_kmeans(vals, centers, 11)
+
+        # Compute total population per cluster
+        cluster_populations = points.groupby('cluster')['population'].sum().to_dict()
+
+        # Extract centroids
+        centroids = pd.DataFrame(centers)
+        clat = [x[0][1] for _, x in centroids.iterrows()]
+        clong = [x[0][0] for _, x in centroids.iterrows()]
+
+        colors = [
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928',
+            '#a6cee3',
+            '#1f78b4',
+            '#b2df8a',
+            '#33a02c',
+            '#fb9a99',
+            '#e31a1c',
+            '#fdbf6f',
+            '#ff7f00',
+            '#cab2d6',
+            '#6a3d9a',
+            '#ffff99',
+            '#b15928']
+
+        # Plot each cluster as colored scatter
+        for cluster in range(11):
+            cluster_data = points[points['cluster'] == cluster]
+            fig = plt.scatter(cluster_data['long'], cluster_data['lat'], 
+                        label=f'Cluster {cluster}', s=40, color=colors[cluster], alpha=0.8)
+            
+        st.plotly_chart(fig, use_container_width=False)
+
     
 
     else:
