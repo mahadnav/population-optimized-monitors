@@ -25,9 +25,10 @@ st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_draw
 grid_df = None
 if st_map and st_map.get("last_active_drawing"):
     geom = st_map["last_active_drawing"]
-    st.write("You drew a shape:", geom)
+    # st.write("You drew a shape:", geom)
     if geom["type"] == "Feature":
-        coords = geom["coordinates"][0]
+        coords = geom["geometry"]["coordinates"][0]
+        print(coords)
         lons, lats = zip(*coords)
         min_lon, max_lon = min(lons), max(lons)
         min_lat, max_lat = min(lats), max(lats)
