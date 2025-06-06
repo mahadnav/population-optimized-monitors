@@ -6,14 +6,13 @@ import folium
 from streamlit_folium import st_folium
 from shapely.geometry import box
 import rioxarray
-from rasterstats import zonal_stats # <-- Import the new library
+from rasterstats import zonal_stats
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
 
 st.markdown("""
-Draw a rectangle on the map to define your airshed boundary. The app will generate a 0.01° x 0.01° spatial resolution grid and compute population from WorldPop.
-**Note:** You will need to install `rasterstats` for this to work (`pip install rasterstats`).
+Draw a rectangle on the map to define your airshed boundary.
 """)
 
 # --- Initial Map Display ---
@@ -66,18 +65,38 @@ if st_map and st_map.get("last_active_drawing"):
 
         tif_file = get_worldpop_data()
 
-        # --- Population Calculation using Zonal Statistics (More Robust Method) ---
-        st.info("⏳ Calculating population in each grid cell... this may take a moment.")
+        # --- Population Calculation with Progress Bar ---
+        st.info("⏳ Calculating population in each grid cell...")
         
-        with st.spinner('Processing...'):
-            # Use the uploaded file object directly. rasterstats can handle it.
-            # 'all_touched=True' includes cells that are merely touched by the polygon.
-            stats = zonal_stats(gdf, tif_file, stats="sum", all_touched=True)
+        total_geometries = len(gdf)
+        chunk_size = 100  # Process 100 cells at a time
+        population_sums = []
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        for i in range(0, total_geometries, chunk_size):
+            chunk_gdf = gdf.iloc[i:i + chunk_size]
             
-            # The result is a list of dictionaries. Extract the 'sum' value from each.
-            # Handle cases where a polygon might not overlap with the raster (results in None)
-            population_sums = [stat['sum'] if stat['sum'] is not None else 0 for stat in stats]
-            gdf["population"] = population_sums
+            # Use the uploaded file object directly. rasterstats can handle it.
+            stats = zonal_stats(chunk_gdf, tif_file, stats="sum", all_touched=True)
+            
+            # Extract sums and append to the main list
+            chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
+            population_sums.extend(chunk_sums)
+            
+            # Update progress
+            processed_count = min(i + chunk_size, total_geometries)
+            percent_complete = processed_count / total_geometries
+            
+            # Update UI
+            progress_bar.progress(percent_complete)
+            status_text.text(f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})")
+
+        # Clean up progress UI and assign data
+        status_text.text(f"Processed {total_geometries} cells.")
+        progress_bar.empty()
+        gdf["population"] = population_sums
 
         st.success("✅ Population values computed.")
         st.dataframe(gdf.drop(columns="geometry").head())
