@@ -189,8 +189,8 @@ if st_map and st_map.get("last_active_drawing"):
         linewidth=0.5, 
         bins=45,
         kind='hist')
-        fig.figure.set_size_inches(5, 3)
-        
+        fig.figure.set_size_inches(5, 6)
+
 
         st.pyplot(fig)
     
