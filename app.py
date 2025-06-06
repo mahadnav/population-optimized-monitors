@@ -159,7 +159,6 @@ if st_map and st_map.get("last_active_drawing"):
 
         # --- Download Functionality ---
         csv = gdf.drop(columns=["geometry", "str_id"]).to_csv(index=False).encode('utf-8')
-        csv.drop(columns='id', inplace=True)
         csv['long'], csv['lat'] = (csv['left']+ csv['right'])/2, (csv['top'] + csv['bottom'])/2
         csv.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
         csv.fillna(0, inplace=True)
