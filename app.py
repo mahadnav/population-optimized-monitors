@@ -47,22 +47,22 @@ def create_drawing_map():
     Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
     return m
 
-@st.cache_data(hash_funcs={gpd.GeoDataFrame: id})
-def create_population_grid_map(gdf, map_bounds):
+@st.cache_resource
+def create_population_grid_map(_gdf, _map_bounds):
     """
     Creates and caches the Folium choropleth map of the population grid.
-    This is slow and should only run once.
+    As a resource, this will be created only once per session.
     """
-    st.write("--- Creating Population Grid Map (This should only print once!) ---")
+    st.write("--- Creating Population Grid Map as a Resource (This will only print once!) ---")
 
     # Unpack map bounds
-    min_lat, max_lat, min_lon, max_lon = map_bounds
+    min_lat, max_lat, min_lon, max_lon = _map_bounds
 
     # Create the base map
     m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
     
-    # --- All the GeoJson and Styling logic now lives inside the cached function ---
-    gdf_copy = gdf.copy().fillna(0).reset_index(drop=True)
+    # --- The rest of your function remains exactly the same ---
+    gdf_copy = _gdf.copy().fillna(0).reset_index(drop=True)
     gdf_copy['str_id'] = gdf_copy['id'].astype(str)
     geojson_data = json.loads(gdf_copy.to_json())
 
@@ -75,7 +75,6 @@ def create_population_grid_map(gdf, map_bounds):
     norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
 
     def style_function(feature):
-        # We need to look up the population from the gdf_copy
         pop_series = gdf_copy.loc[gdf_copy['str_id'] == feature['id'], 'population']
         if pop_series.empty:
             return {'fillOpacity': 0, 'weight': 0}
