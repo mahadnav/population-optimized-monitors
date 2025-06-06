@@ -99,6 +99,14 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.success("WorldPop data downloaded!")
 
+        with open(tif_path, 'rb') as f:
+            header = f.read(4)
+
+        # Valid TIFF headers: little-endian or big-endian
+        if header not in [b'II*\x00', b'MM\x00*']:
+            st.error("This is not a valid TIFF file. Check the source.")
+            st.stop()
+
         da = rioxarray.open_rasterio(tif_path).squeeze()
         da = da.rio.write_crs("EPSG:4326")
 
