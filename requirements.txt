@@ -8,3 +8,4 @@ shapely
 requests
 rioxarray
 xarray
+joblib
