@@ -12,11 +12,18 @@ import matplotlib.pyplot as plt
 import json
 import os
 
-# --- DEBUGGING LINES ---
-st.write("## Debugging Info")
+# --- DEBUGGING LINES v2 ---
+st.write("## Debugging Info v2")
 st.write("**Current Working Directory:**", os.getcwd())
 st.write("**Files in CWD:**", os.listdir("."))
+
+try:
+    st.write("**Files in 'helpers' dir:**", os.listdir("helpers"))
+except Exception as e:
+    st.write("Could not list files in 'helpers' directory.")
+    st.error(e)
 # --- END DEBUGGING LINES ---
+
 
 from helpers.utils import classify_population_density, cluster_analysis, cluster_metrics, weighted_kmeans, randomize_initial_cluster
 
