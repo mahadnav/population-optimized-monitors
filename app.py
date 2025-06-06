@@ -110,7 +110,7 @@ if st_map and st_map.get("last_active_drawing"):
         st.success("✅ Population values computed.")
         st.dataframe(gdf.drop(columns="geometry").head())
 
-        csv = gdf.drop(columns=["geometry", "str_id"])
+        csv = gdf.drop(columns=["geometry", "id"])
         csv['long'], csv['lat'] = (csv['left']+ csv['right'])/2, (csv['top'] + csv['bottom'])/2
         csv.drop(columns=['left', 'right', 'top', 'bottom'], inplace=True)
         csv.fillna(0, inplace=True)
