@@ -107,7 +107,8 @@ if st_map and st_map.get("last_active_drawing"):
         st.success("WorldPop data downloaded!")
 
         da = rioxarray.open_rasterio(tif_path).squeeze()
-        da = da.rio.write_crs("EPSG:4326")
+        da = da.rio.write_crs   ("EPSG:4326")
+        st.write(f"Raster CRS: {da}")
 
         population = []
         for geom in gdf.geometry:
