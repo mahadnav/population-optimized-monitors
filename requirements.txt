@@ -4,7 +4,6 @@ pandas
 numpy
 shapely
 streamlit_folium
-rasterio.mask
 rasterio
 tempfile
 requests
