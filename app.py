@@ -284,46 +284,34 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
-        # 1. Define the initial camera view for the map
-        view_state = pdk.ViewState(
-            latitude=centroids['clat'].mean(),
-            longitude=centroids['clong'].mean(),
-            zoom=11,
-            pitch=45
-        )
 
-        # 2. Define the layer for the original data points
-        point_layer = pdk.Layer(
-            'ScatterplotLayer',
-            data=points,
-            get_position='[clong, clat]',
-            get_color='[51, 87, 255, 100]', # Blue with some transparency
-            get_radius=50
-        )
+        st.dataframe(centroids)
+        
+        map_center = [centroids['lat'].mean(), centroids['lon'].mean()]
 
-        # 3. Define a new, separate layer for the centroids
-        centroid_layer = pdk.Layer(
-            'ScatterplotLayer',
-            data=centroids,
-            get_position='[clong, clat]',
-            get_color='[255, 0, 0, 255]',  # Solid Red
-            get_radius=150, # Make centroids bigger to stand out
-            pickable=True
-        )
+        # The `zoom_start` parameter controls the initial zoom level.
+        m = folium.Map(location=map_center, zoom_start=11)
 
-        # 4. Define a tooltip for the centroids
-        tooltip = {
-            "html": "<b>{name}</b><br/>Lat: {lat}<br/>Lon: {long}",
-            "style": {"backgroundColor": "maroon", "color": "white"}
-        }
 
-        # 5. Create the Deck object with a list of layers and render it
-        st.pydeck_chart(pdk.Deck(
-            layers=[point_layer, centroid_layer], # Pass both layers here
-            initial_view_state=view_state,
-            map_style='mapbox://styles/mapbox/light-v10',
-            tooltip=tooltip
-        ))
+        # --- Step 4: Add Points to the Map ---
+        # We will loop through each row in our DataFrame.
+        for index, row in centroids_df.iterrows():
+            # For each point, add a CircleMarker.
+            folium.CircleMarker(
+                location=[row['lat'], row['lon']],
+                radius=8,  # The size of the circle marker
+                color='#FF0000',  # The color of the circle's border (red)
+                fill=True,
+                fill_color='#FF0000',  # The color inside the circle
+                fill_opacity=0.6,
+                popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
+            ).add_to(m)
+
+
+        # --- Step 5: Display the Map in Streamlit ---
+        # Use st_folium to render the Folium map object.
+        st.subheader("Interactive Folium Map")
+        st_data = st_folium(m, width=1200, height=600)
 
     
 
