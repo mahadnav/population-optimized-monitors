@@ -10,6 +10,7 @@ import requests
 import os
 import rioxarray
 import xarray as xr
+from joblib import Parallel, delayed
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -96,33 +97,29 @@ if st_map and st_map.get("last_active_drawing"):
                 id_counter += 1
 
         gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
-        st.success(f"Grid generated with {len(gdf)} cells.")
+        st.success(f"✅ Grid generated with {len(gdf)} cells.")
 
-        st.info("Downloading WorldPop data...")
-        tif_path = get_worldpop()
-        st.write(f"WorldPop data saved to: {tif_path}")
-        if not tif_path:
-            st.stop()
+        tif_file = get_worldpop()
 
-        st.success("WorldPop data downloaded!")
+        da = rioxarray.open_rasterio(tif_file).squeeze()
+        da = da.rio.write_crs("EPSG:4326")  # Make sure CRS is set
 
-        da = rioxarray.open_rasterio(tif_path).squeeze()
-        da = da.rio.write_crs("EPSG:4326")
+        # Step 4: Match CRS
+        gdf = gdf.to_crs(da.rio.crs)
 
-        population = []
-        for i, geom in enumerate(gdf.geometry):
+        # Step 5: Parallel clip and population sum
+        st.info("⏳ Calculating population in each grid cell...")
+
+        def extract_population(geom):
             try:
                 clipped = da.rio.clip([geom.__geo_interface__], gdf.crs, drop=True, all_touched=True)
-                st.write(clipped)
-                # Guard against fully masked array
-                total = float(clipped.where(clipped.notnull()).sum().values)
-            except Exception as e:
-                st.warning(f"Failed to clip geometry {i}: {e}")
-                total = 0
-            population.append(total)
+                return float(clipped.where(clipped.notnull()).sum().values)
+            except Exception:
+                return 0.0
 
-        gdf["_sum"] = population
+        gdf["_sum"] = Parallel(n_jobs=-1)(delayed(extract_population)(geom) for geom in gdf.geometry)
 
+        st.success("✅ Population values computed.")
         st.dataframe(gdf.drop(columns="geometry").head())
 
         m_grid = folium.Map(location=[(min_lat + max_lat)/2, (min_lon + max_lon)/2], zoom_start=11)
