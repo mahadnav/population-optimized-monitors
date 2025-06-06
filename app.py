@@ -56,7 +56,13 @@ def get_worldpop(country_code="PAK", year="2020"):
     # progress_bar.empty()
     # status_text.success("✅ Download complete.")
     # return out_path
-    return r"E:\QGIS\PAKISTAN_ppp_2020.tif"
+
+    uploaded_file = st.file_uploader("📂 Upload a WorldPop GeoTIFF (.tif) file", type=["tif", "tiff"])
+
+    if not uploaded_file:
+        st.warning("Please upload a raster file to continue.")
+        st.stop()
+    return uploaded_file
 
 
 grid_df = None
@@ -99,14 +105,6 @@ if st_map and st_map.get("last_active_drawing"):
             st.stop()
 
         st.success("WorldPop data downloaded!")
-
-        with open(tif_path, 'rb') as f:
-            header = f.read(4)
-
-        # Valid TIFF headers: little-endian or big-endian
-        if header not in [b'II*\x00', b'MM\x00*']:
-            st.error("This is not a valid TIFF file. Check the source.")
-            st.stop()
 
         da = rioxarray.open_rasterio(tif_path).squeeze()
         da = da.rio.write_crs("EPSG:4326")
