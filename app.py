@@ -13,7 +13,14 @@ import json
 import os
 
 from helpers import utils
-st.success(utils.test_function())
+
+# ✅ CORRECT: set_page_config is the FIRST Streamlit command
+st.set_page_config(
+    page_title="Population Monitors",
+    layout="wide"
+)
+
+st.title("My App Title")
 
 
 # if "population_grid" not in st.session_state:
