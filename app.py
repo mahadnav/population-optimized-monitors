@@ -24,38 +24,39 @@ from folium.plugins import Draw
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False}).add_to(m)
 st_map = st_folium(m, width=1500, height=500, returned_objects=["last_active_drawing"])
 
-def download_worldpop(country_code="PAK", year="2020"):
-    base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{country_code.lower()}_ppp_2020_UNadj.tif"
-    response = requests.get(base_url, stream=True)
+def get_worldpop(country_code="PAK", year="2020"):
+    # base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{country_code.lower()}_ppp_2020_UNadj.tif"
+    # response = requests.get(base_url, stream=True)
 
-    if response.status_code != 200:
-        st.error("Failed to download WorldPop raster.")
-        return None
+    # if response.status_code != 200:
+    #     st.error("Failed to download WorldPop raster.")
+    #     return None
 
-    total_size = int(response.headers.get('content-length', 0))
-    total_mb = total_size / (1024 * 1024)  # convert bytes to megabytes
+    # total_size = int(response.headers.get('content-length', 0))
+    # total_mb = total_size / (1024 * 1024)  # convert bytes to megabytes
 
-    temp_dir = tempfile.gettempdir()
-    out_path = os.path.join(temp_dir, f"worldpop_{country_code}_{year}.tif")
+    # temp_dir = tempfile.gettempdir()
+    # out_path = os.path.join(temp_dir, f"worldpop_{country_code}_{year}.tif")
 
-    chunk_size = 1024
-    downloaded = 0
-    progress_bar = st.progress(0)
-    status_text = st.empty()
+    # chunk_size = 1024
+    # downloaded = 0
+    # progress_bar = st.progress(0)
+    # status_text = st.empty()
 
-    with open(out_path, 'wb') as f:
-        for chunk in response.iter_content(chunk_size):
-            if chunk:
-                f.write(chunk)
-                downloaded += len(chunk)
-                percent = int((downloaded / total_size) * 100)
-                downloaded_mb = downloaded / (1024 * 1024)
-                status_text.text(f"⬇️ Downloaded: {downloaded_mb:.2f} MB / {total_mb:.2f} MB ({percent}%)")
-                progress_bar.progress(min(percent, 100))
+    # with open(out_path, 'wb') as f:
+    #     for chunk in response.iter_content(chunk_size):
+    #         if chunk:
+    #             f.write(chunk)
+    #             downloaded += len(chunk)
+    #             percent = int((downloaded / total_size) * 100)
+    #             downloaded_mb = downloaded / (1024 * 1024)
+    #             status_text.text(f"⬇️ Downloaded: {downloaded_mb:.2f} MB / {total_mb:.2f} MB ({percent}%)")
+    #             progress_bar.progress(min(percent, 100))
 
-    progress_bar.empty()
-    status_text.success("✅ Download complete.")
-    return out_path
+    # progress_bar.empty()
+    # status_text.success("✅ Download complete.")
+    # return out_path
+    return r"E:\QGIS\PAKISTAN_ppp_2020.tif"
 
 
 grid_df = None
@@ -92,7 +93,7 @@ if st_map and st_map.get("last_active_drawing"):
         st.success(f"Grid generated with {len(gdf)} cells.")
 
         st.info("Downloading WorldPop data...")
-        tif_path = download_worldpop()
+        tif_path = get_worldpop()
         if not tif_path:
             st.stop()
 
