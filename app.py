@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import folium
 from streamlit_folium import st_folium
+from folium.plugins import Draw
 from shapely.geometry import box
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
