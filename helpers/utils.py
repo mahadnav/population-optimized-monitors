@@ -4,29 +4,12 @@ from sklearn.preprocessing import MinMaxScaler
 import random
 from haversine import haversine, Unit
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
-def classify_population_density(gdf):
-    # Define density thresholds using quantiles
-    low_threshold = gdf['population'].quantile(0.25)
-    medium_threshold = gdf['population'].quantile(0.75)
-    
-    # Create a classification function
-    def classify(population):
-        if population <= low_threshold:
-            return 'Low'
-        elif low_threshold < population <= medium_threshold:
-            return 'Medium'
-        else:
-            return 'High'
-            
-    # Apply the classification
-    gdf['density_class'] = gdf['population'].apply(classify)
-    
-    # Calculate statistics
-    density_stats = gdf.groupby('density_class')['population'].agg(['mean', 'sum', 'count']).reset_index()
-    density_stats.columns = ['Density Class', 'Average Population', 'Total Population', 'Grid Cells']
-    
-    return density_stats
+def classify_population_density(data):
+    kmeans = KMeans(n_clusters=2, random_state=42)
+    data['cluster'] = kmeans.fit_predict(data[['population']])
+    return data
 
 # You can also keep your test function here
 def test_import():
