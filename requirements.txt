@@ -12,4 +12,3 @@ joblib
 rasterstats
 matplotlib
 scikit-learn
-random
