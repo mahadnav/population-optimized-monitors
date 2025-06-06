@@ -9,6 +9,7 @@ import rioxarray
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+import json
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -144,17 +145,43 @@ if st_map and st_map.get("last_active_drawing"):
         # --- Displaying the Grid with Population Data ---
         m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=10)
         
-        # Add a choropleth layer for better visualization
-        folium.Choropleth(
-            geo_data=gdf,
-            name='choropleth',
-            data=gdf,
-            columns=['id', 'population'],
-            key_on='feature.id', # This needs to match an id in the geo_data
-            fill_color='YlOrRd',
-            fill_opacity=0.7,
-            line_opacity=0.2,
-            legend_name='Population Count'
+        # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
+        gdf = gdf.reset_index(drop=True)
+        gdf['str_id'] = gdf['id'].astype(str)
+        geojson_data = json.loads(gdf.to_json())
+
+        for i, feature in enumerate(geojson_data['features']):
+            feature['id'] = gdf.loc[i, 'str_id']
+
+        # Create colormap for population values
+        pop_min = gdf['population'].min()
+        pop_max = gdf['population'].max()
+        colormap = cm.get_cmap('YlOrRd')
+
+        norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
+
+        def style_function(feature):
+            pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
+            if pop == 0 or pop is None or np.isnan(pop):
+                # Fully transparent for zero population
+                return {
+                    'fillOpacity': 0,
+                    'weight': 0
+                }
+            else:
+                color = colors.rgb2hex(colormap(norm(pop))[:3])
+                return {
+                    'fillColor': color,
+                    'color': 'black',
+                    'weight': 0.5,
+                    'fillOpacity': 0.7,
+                }
+
+        folium.GeoJson(
+            geojson_data,
+            name='Population Grid',
+            style_function=style_function,
+            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
         ).add_to(m_grid)
 
         folium.LayerControl().add_to(m_grid)
@@ -163,7 +190,7 @@ if st_map and st_map.get("last_active_drawing"):
         st_folium(m_grid, width=1500, height=500)
 
         # --- Download Functionality ---
-        csv = gdf.drop(columns="geometry").to_csv(index=False).encode('utf-8')
+        csv = gdf.drop(columns=["geometry", "str_id"]).to_csv(index=False).encode('utf-8')
         st.download_button(
             "📥 Download Population Grid CSV",
             data=csv,
