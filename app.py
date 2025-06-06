@@ -26,6 +26,7 @@ st_map = st_folium(m, width=700, height=500, returned_objects=["last_active_draw
 
 def download_worldpop(country_code="PAK", year="2020"):
     base_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code}/{(country_code).lower()}_ppp_{year}_UNadj_constrained.tif"
+    st.write(f"Downloading WorldPop data from: {base_url}")
     response = requests.get(base_url, stream=True)
 
     if response.status_code != 200:
