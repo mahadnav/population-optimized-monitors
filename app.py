@@ -7,6 +7,8 @@ from streamlit_folium import st_folium
 from shapely.geometry import box
 import rioxarray
 from rasterstats import zonal_stats
+import matplotlib.cm as cm
+import matplotlib.colors as colors
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
@@ -64,6 +66,44 @@ if st_map and st_map.get("last_active_drawing"):
         st.success(f"✅ Grid generated with {len(gdf)} cells.")
 
         tif_file = get_worldpop_data()
+
+        # --- Display Uploaded Population Raster ---
+        st.subheader("🗺️ Uploaded Population Raster Preview")
+        with rioxarray.open_rasterio(tif_file) as rds:
+            # Get raster bounds for folium in [[min_lat, min_lon], [max_lat, max_lon]] format
+            bounds = [[rds.rio.bounds()[1], rds.rio.bounds()[0]], [rds.rio.bounds()[3], rds.rio.bounds()[2]]]
+            
+            # Read data and handle no-data values by setting them to NaN
+            data = rds.squeeze().values
+            nodata_val = rds.rio.nodata
+            if nodata_val is not None:
+                data[data == nodata_val] = np.nan
+
+            # Normalize data for colormap and apply colormap to get an RGBA image
+            norm = colors.Normalize(vmin=np.nanmin(data), vmax=np.nanmax(data))
+            cmap = cm.get_cmap('viridis')
+            rgba_data = cmap(norm(data))
+            rgba_data[np.isnan(data)] = (0, 0, 0, 0) # Make no-data areas transparent
+            rgba_data_uint8 = (rgba_data * 255).astype(np.uint8)
+
+            # Create a Folium map centered on the drawn area
+            map_center = [(min_lat + max_lat) / 2, (min_lon + max_lon) / 2]
+            raster_map = folium.Map(location=map_center, zoom_start=9)
+            
+            # Add the raster data as an image overlay
+            folium.raster_layers.ImageOverlay(
+                image=rgba_data_uint8,
+                bounds=bounds,
+                opacity=0.7,
+                name="Population Raster"
+            ).add_to(raster_map)
+
+            # Add the drawn airshed boundary for context
+            folium.GeoJson(geom, name="Airshed Boundary").add_to(raster_map)
+            folium.LayerControl().add_to(raster_map)
+
+            # Display the map in the Streamlit app
+            st_folium(raster_map, width=1500, height=500)
 
         # --- Population Calculation with Progress Bar ---
         st.info("⏳ Calculating population in each grid cell...")
