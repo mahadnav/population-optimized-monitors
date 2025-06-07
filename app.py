@@ -220,25 +220,29 @@ if st_map and st_map.get("last_active_drawing"):
 
         #### high density
         high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
-        sampled = low.sample(int(0.7 * len(low)))
-        centers = randomize_initial_cluster(sampled, low_monitors)
-        points, centers, iters, sse = weighted_kmeans(vals, centers, low_monitors)
-
-        # Compute total population per cluster
-        cluster_populations = points.groupby('cluster')['population'].sum().to_csv()
-        st.dataframe(cluster_populations)
-
-        # Extract centroids
-        high_centroids = pd.DataFrame(centers)
-        high_clat = [x[0][1] for _, x in low_centroids.iterrows()]
-        high_clong = [x[0][0] for _, x in low_centroids.iterrows()]
+        sampled = high.sample(int(0.7 * len(high)))
+        centers = randomize_initial_cluster(sampled, high_monitors)
+        points, centers, iters, sse = weighted_kmeans(high, centers, high_monitors)
+        high_cluster_populations = points.groupby('cluster')['population'].sum().to_csv()
         
-        raw_df = pd.DataFrame({
-                    'low_lat': low_clat,
-                    'low_lon': low_clong,
-                    'high_lat': high_clat,
-                    'high_lon': high_clong
-                })
+        st.write("High Density Cluster Populations:")
+        st.dataframe(high_cluster_populations)
+        high_centroids = pd.DataFrame(centers)
+
+        high_clat = [x[0][1] for _, x in high_centroids.iterrows()]
+        high_clong = [x[0][0] for _, x in high_centroids.iterrows()]
+        
+        low_df = pd.DataFrame({
+            'clat': low_clat,
+            'clon': low_clong
+            })
+            
+        high_df = pd.DataFrame({   
+            'high_lat': high_clat,
+            'high_lon': high_clong
+            })
+        
+        raw_df = pd.concat([low_df, high_df], axis=1, ignore_index=True)
         
         st.dataframe(raw_df)
 
