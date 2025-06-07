@@ -369,9 +369,6 @@ if st_map and st_map.get("last_active_drawing"):
             
             # Retrieve the data from the session
             final_monitors_df = st.session_state["monitor_data"]
-            
-            # Display the dataframe
-            st.dataframe(final_monitors_df)
 
             # Create and display the map
             map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
