@@ -231,7 +231,8 @@ if st_map and st_map.get("last_active_drawing"):
         edgecolor='k', 
         linewidth=0.5, 
         bins=45,
-        kind='hist')
+        kind='hist',
+        kde=True)
         fig.figure.set_size_inches(8, 3)
         fig.set_axis_labels("Population Density", "Frequency")
         st.pyplot(fig)
