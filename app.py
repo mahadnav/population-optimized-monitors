@@ -239,6 +239,9 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("Cluster Analysis with Weighted K-Means")
 
+        low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, key="low_clusters")
+        high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, key="high_clusters")
+
         # This is the correct pattern: check the state FIRST.
         if st.session_state["monitor_data"] is None:
             
@@ -251,7 +254,7 @@ if st_map and st_map.get("last_active_drawing"):
             high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
             # --- Low density calculation ---
-            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, key="low_clusters")
+            
             sampled_low = low.sample(int(0.7 * len(low)))
             centers_low = randomize_initial_cluster(sampled_low, low_monitors)
             points_low, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
@@ -260,7 +263,6 @@ if st_map and st_map.get("last_active_drawing"):
             low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
             
             # --- High density calculation ---
-            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, key="high_clusters")
             sampled_high = high.sample(int(0.7 * len(high)))
             centers_high = randomize_initial_cluster(sampled_high, high_monitors)
             points_high, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
