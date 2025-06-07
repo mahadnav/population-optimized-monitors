@@ -311,7 +311,7 @@ if st_map and st_map.get("last_active_drawing"):
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
-                st.success("✅ Analysis complete! Results are now stored in the session.")
+                st.success("✅ Analysis complete!")
             
             colors = [
                 '#a6cee3',
