@@ -94,6 +94,7 @@ st_map = st_folium(m, width=1700, height=700, returned_objects=["last_active_dra
 def get_worldpop_data():
     """Handles the upload of the WorldPop GeoTIFF file."""
     uploaded_file = st.file_uploader("📂 Upload a WorldPop GeoTIFF (.tif) file", type=["tif", "tiff"])
+    st.write("Sample data: [WorldPop GeoTIFF United Kingdom](https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/GBR/gbr_ppp_2020_UNadj.tif)")
     if not uploaded_file:
         st.warning("Please upload a raster file to continue.")
         st.stop()
