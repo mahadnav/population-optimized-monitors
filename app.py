@@ -75,7 +75,7 @@ col1, col2 = st.columns([1, 5], vertical_alignment="center")
 
 with col1:
     # Make sure 'logo.png' is the correct path to your logo file
-    st.image("logo.jpeg", width=120)
+    st.image("logo.jpeg", width=150)
 
 with col2:
     st.title("Population-Centric Air Quality Monitor Optimization")
