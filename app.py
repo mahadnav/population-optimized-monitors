@@ -180,7 +180,7 @@ if st_map and st_map.get("last_active_drawing"):
         # 2. Create a Branca LinearColormap for the legend
         pop_min = gdf['population'].min()
         # Set a realistic max for the legend, e.g., the 99th percentile, to avoid outliers skewing the scale
-        pop_max = gdf['population'].quantile(0.99) 
+        pop_max = gdf['population'].max() 
 
         # You can use a predefined color scheme or pass the colors from your 'inferno' map
         mpl_colormap = cm.get_cmap('inferno')
@@ -190,7 +190,7 @@ if st_map and st_map.get("last_active_drawing"):
             colors=inferno_colors,
             vmin=pop_min,
             vmax=pop_max,
-            max_labels=3
+            max_labels=4
         )
 
 
