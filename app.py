@@ -184,13 +184,13 @@ if st_map and st_map.get("last_active_drawing"):
 
         # You can use a predefined color scheme or pass the colors from your 'inferno' map
         mpl_colormap = cm.get_cmap('inferno')
-        inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
+        inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 100)]
 
         colormap = bcm.LinearColormap(
             colors=inferno_colors,
             vmin=pop_min,
             vmax=pop_max,
-            caption='Population per Grid Cell' # Legend caption
+            max_labels=2
         )
 
 
