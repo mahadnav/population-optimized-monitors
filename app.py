@@ -196,7 +196,7 @@ if st_map and st_map.get("last_active_drawing"):
                 return {
                     'fillColor': color,
                     'color': 'white',
-                    'weight': 0.1,
+                    'weight': 0.01,
                     'fillOpacity': 0.7,
                 }
 
