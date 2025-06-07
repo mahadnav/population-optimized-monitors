@@ -17,7 +17,7 @@ from helpers.utils import classify_population_density, randomize_initial_cluster
 
 # --- Page Configuration (do this first!) ---
 st.set_page_config(
-    page_title="Airshed Monitor Optimizer",
+    page_title="PAQI - AQM Network Optimization",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -70,8 +70,17 @@ def merge_close_centroids(centroids, threshold=2):
 
 # --- Main App UI ---
 
-st.title("🎯 Population-Centric Air Quality Monitor Optimization")
-st.markdown("A tool to strategically place air quality monitors based on population density.")
+# --- HEADER SECTION ---
+col1, col2 = st.columns([1, 5], vertical_alignment="center")
+
+with col1:
+    # Make sure 'logo.png' is the correct path to your logo file
+    st.image("logo.jpeg", width=120)
+
+with col2:
+    st.title("Population-Centric Air Quality Monitor Optimization")
+    st.markdown("A tool to strategically place air quality monitors based on population density.\nDeveloped by Mahad Naveed and the PakAirQaulity (PAQI) Team.")
+
 st.divider()
 
 # --- STEP 1: DEFINE AIRSHED BOUNDARY ---
@@ -82,7 +91,7 @@ map_center = [25, 65] # Centered on Pakistan
 m = folium.Map(location=map_center, zoom_start=5, tiles="CartoDB positron")
 draw_plugin = folium.plugins.Draw(
     export=False,
-    draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}
+    draw_options={'rectangle': True, 'polygon': False, 'circlemarker': False, 'polyline': False}
 )
 draw_plugin.add_to(m)
 
@@ -136,7 +145,7 @@ if st.session_state.boundary:
 
             # Retrieve grid from session state
             gdf = st.session_state.population_grid
-            st.success(f"✅ Population data processed for **{len(gdf)}** populated grid cells.")
+            st.success(f"✅ Population data processed for **{len(gdf)}** grid cells.")
             
             # --- Display Population Map and Data in Tabs ---
             tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
