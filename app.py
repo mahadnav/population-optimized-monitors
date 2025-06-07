@@ -23,7 +23,6 @@ if "population_computed" not in st.session_state:
 if "monitor_data" not in st.session_state:
     st.session_state["monitor_data"] = None
 
-
 def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).kilometers
 
@@ -65,8 +64,12 @@ def merge_close_centroids(centroids, threshold=2):
     return new_centroids
 
 
-st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
-st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
+st.set_page_config(page_title="Population-Centric Monitoring Network", layout="wide", theme="light", )
+
+with open( "app\style.css" ) as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+    
+st.title("Population-Centric optimization of Air Quality Monitoring Network")
 
 st.markdown("""
 Draw a rectangle on the map to define your airshed boundary.
