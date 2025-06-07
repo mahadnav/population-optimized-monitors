@@ -281,7 +281,7 @@ if st_map and st_map.get("last_active_drawing"):
                 min_value=1, max_value=10, value=2, key="min_distance"
             )
 
-        _, col2, _ = st.columns([1, 5, 1])
+        _, col2, _ = st.columns(3)
         with col2:
             run_button = st.button("🚀 Run Monitor Optimization Analysis")
 
