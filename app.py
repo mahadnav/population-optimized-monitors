@@ -239,6 +239,8 @@ if st_map and st_map.get("last_active_drawing"):
                     'high_lat': high_clat,
                     'high_lon': high_clong
                 })
+        
+        st.dataframe(raw_df)
 
 
         colors = [
