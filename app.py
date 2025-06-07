@@ -190,7 +190,7 @@ if st_map and st_map.get("last_active_drawing"):
             colors=inferno_colors,
             vmin=pop_min,
             vmax=pop_max,
-            max_labels=2
+            max_labels=3
         )
 
 
