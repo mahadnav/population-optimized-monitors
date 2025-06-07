@@ -198,18 +198,48 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("Cluster Analysis with Weighted K-Means")
 
-        vals = density_df[['population', 'long', 'lat']].copy()
-        sampled = vals.sample(int(0.7 * len(density_df)))
-        centers = randomize_initial_cluster(sampled, 11)
-        points, centers, iters, sse = weighted_kmeans(vals, centers, 11)
+        vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+        low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
+        high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
+
+        #### low density
+
+        low_monitors = st.number_input("Number of Clusters for Low Density", min_value=2, max_value=100, value=11, key="low_clusters")
+        sampled = low.sample(int(0.7 * len(low)))
+        centers = randomize_initial_cluster(sampled, low_monitors)
+        points, centers, iters, sse = weighted_kmeans(vals, centers, low_monitors)
 
         # Compute total population per cluster
-        cluster_populations = points.groupby('cluster')['population'].sum().to_dict()
+        cluster_populations = points.groupby('cluster')['population'].sum().to_csv()
+        st.dataframe(cluster_populations)
 
         # Extract centroids
-        centroids = pd.DataFrame(centers)
-        clat = [x[0][1] for _, x in centroids.iterrows()]
-        clong = [x[0][0] for _, x in centroids.iterrows()]
+        low_centroids = pd.DataFrame(centers)
+        low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
+        low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
+
+        #### high density
+        high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
+        sampled = low.sample(int(0.7 * len(low)))
+        centers = randomize_initial_cluster(sampled, low_monitors)
+        points, centers, iters, sse = weighted_kmeans(vals, centers, low_monitors)
+
+        # Compute total population per cluster
+        cluster_populations = points.groupby('cluster')['population'].sum().to_csv()
+        st.dataframe(cluster_populations)
+
+        # Extract centroids
+        high_centroids = pd.DataFrame(centers)
+        high_clat = [x[0][1] for _, x in low_centroids.iterrows()]
+        high_clong = [x[0][0] for _, x in low_centroids.iterrows()]
+        
+        raw_df = pd.DataFrame({
+                    'low_lat': low_clat,
+                    'low_lon': low_clong,
+                    'high_lat': high_clat,
+                    'high_lon': high_clong
+                })
+
 
         colors = [
             '#a6cee3',
