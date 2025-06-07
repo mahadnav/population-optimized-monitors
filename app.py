@@ -280,8 +280,10 @@ if st_map and st_map.get("last_active_drawing"):
                 "Minimum Distance Between Monitors (km)", 
                 min_value=1, max_value=10, value=2, key="min_distance"
             )
-        # --- Step 2: Add a button to trigger the expensive calculation. ---
-        run_button = st.button("🚀 Run Monitor Optimization Analysis")
+
+        _, col2, _ = st.columns([1, 5, 1])
+        with col2:
+            run_button = st.button("🚀 Run Monitor Optimization Analysis")
 
         # --- Step 3: Run the calculation ONLY when the button is clicked. ---
         if run_button:
