@@ -78,7 +78,7 @@ with col2:
     st.title("Population-Centric Air Quality Monitor Optimization")
     st.markdown("### A tool to strategically place air quality monitors based on population density.")
     st.write("Developed by Mahad Naveed and the PakAirQuality (PAQI) Team.")
-    st.markdown("[doi.org/10.5194/egusphere-egu25-4723](https://doi.org/10.5194/egusphere-egu25-4723)")
+    st.markdown("###### [doi.org/10.5194/egusphere-egu25-4723](https://doi.org/10.5194/egusphere-egu25-4723)")
 
 st.divider() 
 
