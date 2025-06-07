@@ -364,39 +364,39 @@ if st_map and st_map.get("last_active_drawing"):
                 '#b15928']
 
 
-            if st.session_state["monitor_data"] is not None:
-                st.subheader("Final Optimized Monitor Locations")
-                
-                # Retrieve the data from the session
-                final_monitors_df = st.session_state["monitor_data"]
-                
-                # Display the dataframe
-                st.dataframe(final_monitors_df)
+        if st.session_state["monitor_data"] is not None:
+            st.subheader("Final Optimized Monitor Locations")
+            
+            # Retrieve the data from the session
+            final_monitors_df = st.session_state["monitor_data"]
+            
+            # Display the dataframe
+            st.dataframe(final_monitors_df)
 
-                # Create and display the map
-                map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
-                m = folium.Map(location=map_center, zoom_start=11)
+            # Create and display the map
+            map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
+            m = folium.Map(location=map_center, zoom_start=11)
 
-                for index, row in final_monitors_df.iterrows():
-                    folium.CircleMarker(
-                        location=[row['lat'], row['lon']],
-                        radius=8,
-                        color='#FF0000',
-                        fill=True,
-                        fill_color='#FF0000',
-                        fill_opacity=0.6,
-                        popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
-                    ).add_to(m)
+            for index, row in final_monitors_df.iterrows():
+                folium.CircleMarker(
+                    location=[row['lat'], row['lon']],
+                    radius=8,
+                    color='#FF0000',
+                    fill=True,
+                    fill_color='#FF0000',
+                    fill_opacity=0.6,
+                    popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
+                ).add_to(m)
 
-                st_folium(m, width=1700, height=700)
+            st_folium(m, width=1700, height=700)
 
-                # Display the download button
-                st.download_button(
-                    "Click to download monitor locations",
-                    data=final_monitors_df.to_csv(index=False).encode('utf-8'),
-                    file_name="optimized_monitor_locations.csv",
-                    mime="text/csv"
-                )
+            # Display the download button
+            st.download_button(
+                "Click to download monitor locations",
+                data=final_monitors_df.to_csv(index=False).encode('utf-8'),
+                file_name="optimized_monitor_locations.csv",
+                mime="text/csv"
+            )
 
     
 
