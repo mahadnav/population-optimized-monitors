@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 import os
+import time
 from geopy.distance import geodesic
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
@@ -116,7 +117,7 @@ if st_map and st_map.get("last_active_drawing"):
                 id_counter += 1
 
         gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
-        st.success(f"✅ Grid generated with {len(gdf)} cells.")
+        st.success(f"Grid generated with {len(gdf)} cells.")
 
         tif_file = get_worldpop_data()
 
@@ -150,9 +151,8 @@ if st_map and st_map.get("last_active_drawing"):
             st.session_state["population_computed"] = True
         else:
             gdf = st.session_state["population_grid"]
-            st.success("✅ Population values retrieved from session.")
 
-        st.success("✅ Population values computed.")
+        st.success("✅ Population values computed!")
 
         # --- Displaying the Grid with Population Data ---
         m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
@@ -221,7 +221,6 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("Population Density Classification")
         density_df = classify_population_density(gdf.copy())
-        st.dataframe(density_df)
 
         fig = sns.displot(
         data=density_df, 
@@ -258,7 +257,8 @@ if st_map and st_map.get("last_active_drawing"):
 
         # --- Step 3: Run the calculation ONLY when the button is clicked. ---
         if run_button:
-            with st.spinner("Optimizing monitor locations... This may take a moment."):
+            with st.spinner("Optimizing monitor locations..."):
+                time.sleep(2)
                 # Get the data needed for the calculation
                 vals = density_df[['population', 'long', 'lat', 'Density']].copy()
                 low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
@@ -290,10 +290,8 @@ if st_map and st_map.get("last_active_drawing"):
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
-                
-                st.success("✅ Monitor locations optimized and saved.")
 
-        # --- Step 4: Always display the result if it exists in the session state. ---
+
         if st.session_state["monitor_data"] is not None:
             st.subheader("Final Optimized Monitor Locations")
             
