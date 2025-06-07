@@ -69,7 +69,7 @@ st.set_page_config(page_title="Population-Centric Monitoring Network", layout="w
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
-st.title("Population-Centric optimization of Air Quality Monitoring Network")
+st.header("Population-Centric optimization of Air Quality Monitoring Network")
 
 st.markdown("""
 Draw a rectangle on the map to define your airshed boundary.
