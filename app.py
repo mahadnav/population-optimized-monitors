@@ -250,7 +250,7 @@ if st_map and st_map.get("last_active_drawing"):
         data=density_df, 
         x='population', 
         hue='Density',
-        palette='inferno', 
+        palette='RdBu', 
         edgecolor='k', 
         linewidth=0.5, 
         bins=100,
