@@ -37,19 +37,19 @@ def merge_close_centroids(centroids, threshold=5):
         close_centroids = [row1]
         for j, row2 in centroids.iterrows():
             if i != j and j not in used:
-                distance = calculate_distance((row1['clat'], row1['clong']), 
-                                              (row2['clat'], row2['clong']))
+                distance = calculate_distance((row1['lat'], row1['lon']), 
+                                              (row2['lat'], row2['lon']))
                 if distance < threshold:
                     close_centroids.append(row2)
                     used.add(j)
         if len(close_centroids) > 1:
-            mean_lat = np.mean([c['clat'] for c in close_centroids])
-            mean_long = np.mean([c['clong'] for c in close_centroids])
-            merged_centroids.append({'clat': mean_lat, 
-                                     'clong': mean_long})
+            mean_lat = np.mean([c['lat'] for c in close_centroids])
+            mean_long = np.mean([c['lon'] for c in close_centroids])
+            merged_centroids.append({'lat': mean_lat, 
+                                     'lon': mean_long})
         else:
-            merged_centroids.append({'clat': row1['clat'], 
-                                     'clong': row1['clong']})
+            merged_centroids.append({'lat': row1['lat'], 
+                                     'lon': row1['lon']})
         used.add(i)
 
     new_centroids = pd.DataFrame(merged_centroids)
@@ -58,7 +58,7 @@ def merge_close_centroids(centroids, threshold=5):
     for i, row1 in new_centroids.iterrows():
         for j, row2 in new_centroids.iterrows():
             if i != j:
-                distance = calculate_distance((row1['clat'], row1['clong']), (row2['clat'], row2['clong']))
+                distance = calculate_distance((row1['lat'], row1['lon']), (row2['lat'], row2['lon']))
                 if distance < threshold:
                     return merge_close_centroids(new_centroids, threshold)
     
@@ -252,7 +252,7 @@ if st_map and st_map.get("last_active_drawing"):
             high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
             # --- Low density calculation ---
-            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=2, max_value=100, value=11, key="low_clusters")
+            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, value=1, key="low_clusters")
             sampled_low = low.sample(int(0.7 * len(low)))
             centers_low = randomize_initial_cluster(sampled_low, low_monitors)
             points_low, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
@@ -261,7 +261,7 @@ if st_map and st_map.get("last_active_drawing"):
             low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
             
             # --- High density calculation ---
-            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
+            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=1, key="high_clusters")
             sampled_high = high.sample(int(0.7 * len(high)))
             centers_high = randomize_initial_cluster(sampled_high, high_monitors)
             points_high, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
@@ -274,8 +274,6 @@ if st_map and st_map.get("last_active_drawing"):
             high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
             raw_df = pd.concat([low_df, high_df], ignore_index=True)
             
-            # Assuming merge_close_centroids is a function in your utils
-            # that returns the final, cleaned-up dataframe of monitor locations.
             final_monitors_df = merge_close_centroids(raw_df, threshold=5) 
             
             st.success("✅ Monitor locations optimized and saved to session.")
