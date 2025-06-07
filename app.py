@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
+import branca.colormap as bcm
 import json
 import os
 import time
@@ -176,13 +177,24 @@ if st_map and st_map.get("last_active_drawing"):
         for i, feature in enumerate(geojson_data['features']):
             feature['id'] = gdf.loc[i, 'str_id']
 
-        # Create colormap for population values
+        # 2. Create a Branca LinearColormap for the legend
         pop_min = gdf['population'].min()
-        pop_max = gdf['population'].max()
-        colormap = cm.get_cmap('inferno')
+        # Set a realistic max for the legend, e.g., the 99th percentile, to avoid outliers skewing the scale
+        pop_max = gdf['population'].quantile(0.99) 
 
-        norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
+        # You can use a predefined color scheme or pass the colors from your 'inferno' map
+        mpl_colormap = cm.get_cmap('inferno')
+        inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
 
+        colormap = bcm.LinearColormap(
+            colors=inferno_colors,
+            vmin=pop_min,
+            vmax=pop_max,
+            caption='Population per Grid Cell' # Legend caption
+        )
+
+
+        # 3. Update the style_function to use the Branca colormap
         def style_function(feature):
             pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
             if pop == 0 or pop is None or np.isnan(pop):
@@ -192,9 +204,8 @@ if st_map and st_map.get("last_active_drawing"):
                     'weight': 0
                 }
             else:
-                color = colors.rgb2hex(colormap(norm(pop))[:3])
                 return {
-                    'fillColor': color,
+                    'fillColor': colormap(pop), # Use the colormap directly
                     'color': 'white',
                     'weight': 0.01,
                     'fillOpacity': 0.7,
@@ -207,6 +218,8 @@ if st_map and st_map.get("last_active_drawing"):
             tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
         ).add_to(m_grid)
 
+        # 4. Add the colormap (legend) and LayerControl to the map
+        colormap.add_to(m_grid)
         folium.LayerControl().add_to(m_grid)
 
         csv = gdf.to_csv(index=False).encode('utf-8')
