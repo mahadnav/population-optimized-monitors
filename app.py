@@ -290,13 +290,6 @@ if st_map and st_map.get("last_active_drawing"):
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
-
-
-            if st.session_state["monitor_data"] is not None:
-                st.subheader("Final Optimized Monitor Locations")
-                
-                # Retrieve the data from the session
-                final_monitors_df = st.session_state["monitor_data"]
             
             colors = [
                 '#a6cee3',
@@ -401,6 +394,12 @@ if st_map and st_map.get("last_active_drawing"):
                     file_name="optimized_monitor_locations.csv",
                     mime="text/csv"
                 )
+            
+        if st.session_state["monitor_data"] is not None:
+                st.subheader("Final Optimized Monitor Locations")
+                
+                # Retrieve the data from the session
+                final_monitors_df = st.session_state["monitor_data"]
 
     
 
