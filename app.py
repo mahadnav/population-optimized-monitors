@@ -251,7 +251,7 @@ if st_map and st_map.get("last_active_drawing"):
             high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
             # --- Low density calculation ---
-            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, value=1, key="low_clusters")
+            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, key="low_clusters")
             sampled_low = low.sample(int(0.7 * len(low)))
             centers_low = randomize_initial_cluster(sampled_low, low_monitors)
             points_low, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
@@ -260,7 +260,7 @@ if st_map and st_map.get("last_active_drawing"):
             low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
             
             # --- High density calculation ---
-            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=1, key="high_clusters")
+            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, key="high_clusters")
             sampled_high = high.sample(int(0.7 * len(high)))
             centers_high = randomize_initial_cluster(sampled_high, high_monitors)
             points_high, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
@@ -367,7 +367,7 @@ if st_map and st_map.get("last_active_drawing"):
             '#b15928']
 
 
-        map_center = [final_monitors_df['clat'].mean(), final_monitors_df['clong'].mean()]
+        map_center = [final_monitors_df['lat'].mean(), final_monitors_df['long'].mean()]
 
         # The `zoom_start` parameter controls the initial zoom level.
         m = folium.Map(location=map_center, zoom_start=11)
@@ -378,13 +378,13 @@ if st_map and st_map.get("last_active_drawing"):
         for index, row in final_monitors_df.iterrows():
             # For each point, add a CircleMarker.
             folium.CircleMarker(
-                location=[row['clat'], row['clong']],
+                location=[row['lat'], row['lon']],
                 radius=8,  # The size of the circle marker
                 color='#FF0000',  # The color of the circle's border (red)
                 fill=True,
                 fill_color='#FF0000',  # The color inside the circle
                 fill_opacity=0.6,
-                popup=f"Point {index+1}<br>Lat: {row['clat']:.4f}<br>Lon: {row['clong']:.4f}" # What shows up when you click
+                popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
             ).add_to(m)
 
 
