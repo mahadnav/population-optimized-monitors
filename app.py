@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tempfile
 import json
 import os
 from geopy.distance import geodesic
@@ -104,7 +105,7 @@ if st_map and st_map.get("last_active_drawing"):
 
 # --- STEP 2: ANALYZE POPULATION DATA ---
 if st.session_state.boundary:
-    st.header("Step 2: Analyze Population Data", anchor=False)
+    st.markdown("##Step 2: Analyze Population Data", anchor=False)
     
     # Using a container to group this step's logic and UI
     with st.container(border=True):
@@ -138,14 +139,21 @@ if st.session_state.boundary:
                     ]
                     gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
                     
-                    # Population Calculation
-                    stats = zonal_stats(gdf, tif_file.getvalue(), stats="sum", all_touched=True)
-                    gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
-                    
-                    st.session_state.population_grid = gdf[gdf['population'] > 0].reset_index(drop=True)
+                    # Population Calculation using a temporary file to save memory
+                    with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+                        # Write the uploaded file's bytes to the temporary file
+                        tmp.write(tif_file.getvalue())
+                        tmp_path = tmp.name # Get the path to the temporary file
 
-            # Retrieve grid from session state
-            gdf = st.session_state.population_grid
+                    # Now, run zonal_stats using the file path instead of the in-memory object
+                    stats = zonal_stats(gdf, tmp_path, stats="sum", all_touched=True)
+                    
+                    # Clean up the temporary file from the disk
+                    os.remove(tmp_path) 
+                    
+                    gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
+                    st.session_state.population_grid = gdf[gdf['population'] > 0].reset_index(drop=True)
+                    
             st.success(f"✅ Population data processed for **{len(gdf)}** grid cells.")
             
             # --- Display Population Map and Data in Tabs ---
