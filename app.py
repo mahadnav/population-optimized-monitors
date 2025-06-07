@@ -29,8 +29,7 @@ Draw a rectangle on the map to define your airshed boundary.
 """)
 
 # --- Initial Map Display ---
-center = [30.1575, 71.5249]  # Center on Multan, Pakistan
-m = folium.Map(location=center, zoom_start=10)
+m = folium.Map(zoom_start=8)
 from folium.plugins import Draw
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, width=1500, height=500, returned_objects=["last_active_drawing"])
