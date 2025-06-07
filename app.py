@@ -10,9 +10,9 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pydeck as pdk
 import json
 import os
+from geopy.distance import geodesic
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
 if "population_grid" not in st.session_state:
@@ -24,7 +24,6 @@ if "monitor_data" not in st.session_state:
 
 
 def calculate_distance(coord1, coord2):
-    from geopy.distance import geodesic
     return geodesic(coord1, coord2).kilometers
 
 def merge_close_centroids(centroids, threshold=5):
