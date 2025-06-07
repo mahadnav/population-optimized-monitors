@@ -253,7 +253,7 @@ if st_map and st_map.get("last_active_drawing"):
         palette='inferno', 
         edgecolor='k', 
         linewidth=0.5, 
-        bins=45,
+        bins=100,
         kind='hist',
         kde=True)
         fig.figure.set_size_inches(8, 3)
