@@ -292,111 +292,115 @@ if st_map and st_map.get("last_active_drawing"):
                 st.session_state["monitor_data"] = final_monitors_df
 
 
-        if st.session_state["monitor_data"] is not None:
-            st.subheader("Final Optimized Monitor Locations")
+            if st.session_state["monitor_data"] is not None:
+                st.subheader("Final Optimized Monitor Locations")
+                
+                # Retrieve the data from the session
+                final_monitors_df = st.session_state["monitor_data"]
             
-            # Retrieve the data from the session
-            final_monitors_df = st.session_state["monitor_data"]
-            
-            st.dataframe(final_monitors_df)
-
-        
-        colors = [
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928',
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928',
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928',
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928',
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928',
-            '#a6cee3',
-            '#1f78b4',
-            '#b2df8a',
-            '#33a02c',
-            '#fb9a99',
-            '#e31a1c',
-            '#fdbf6f',
-            '#ff7f00',
-            '#cab2d6',
-            '#6a3d9a',
-            '#ffff99',
-            '#b15928']
+            colors = [
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928',
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928',
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928',
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928',
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928',
+                '#a6cee3',
+                '#1f78b4',
+                '#b2df8a',
+                '#33a02c',
+                '#fb9a99',
+                '#e31a1c',
+                '#fdbf6f',
+                '#ff7f00',
+                '#cab2d6',
+                '#6a3d9a',
+                '#ffff99',
+                '#b15928']
 
 
-        map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
+            map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
 
-        # The `zoom_start` parameter controls the initial zoom level.
-        m = folium.Map(location=map_center, zoom_start=11)
+            # The `zoom_start` parameter controls the initial zoom level.
+            m = folium.Map(location=map_center, zoom_start=11)
 
 
-        # --- Step 4: Add Points to the Map ---
-        # We will loop through each row in our DataFrame.
-        for index, row in final_monitors_df.iterrows():
-            # For each point, add a CircleMarker.
-            folium.CircleMarker(
-                location=[row['lat'], row['lon']],
-                radius=8,  # The size of the circle marker
-                color='#FF0000',  # The color of the circle's border (red)
-                fill=True,
-                fill_color='#FF0000',  # The color inside the circle
-                fill_opacity=0.6,
-                popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
-            ).add_to(m)
+            # --- Step 4: Add Points to the Map ---
+            # We will loop through each row in our DataFrame.
+            for index, row in final_monitors_df.iterrows():
+                # For each point, add a CircleMarker.
+                folium.CircleMarker(
+                    location=[row['lat'], row['lon']],
+                    radius=8,  # The size of the circle marker
+                    color='#FF0000',  # The color of the circle's border (red)
+                    fill=True,
+                    fill_color='#FF0000',  # The color inside the circle
+                    fill_opacity=0.6,
+                    popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
+                ).add_to(m)
 
-        st_data = st_folium(m, width=1700, height=700)
+            st_data = st_folium(m, width=1700, height=700)
+
+            st.download_button(
+                    "Click to download monitor locations",
+                    data=final_monitors_df.to_csv(index=False).encode('utf-8'),
+                    file_name="optimized_monitor_locations.csv",
+                    mime="text/csv"
+                )
 
     
 
