@@ -179,7 +179,7 @@ if st_map and st_map.get("last_active_drawing"):
         # Create colormap for population values
         pop_min = gdf['population'].min()
         pop_max = gdf['population'].max()
-        colormap = cm.get_cmap('plasma')
+        colormap = cm.get_cmap('inferno')
 
         norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
 
@@ -211,7 +211,7 @@ if st_map and st_map.get("last_active_drawing"):
 
         csv = gdf.to_csv(index=False).encode('utf-8')
 
-        st.subheader("🗺️ Grid with Population")
+        st.subheader("🗺️ Population Heatmap")
         st_folium(m_grid, width=1500, height=500)
 
 
