@@ -258,13 +258,13 @@ if st_map and st_map.get("last_active_drawing"):
         # --- Step 3: Run the calculation ONLY when the button is clicked. ---
         if run_button:
             with st.spinner("Optimizing monitor locations..."):
-                time.sleep(2)
                 # Get the data needed for the calculation
                 vals = density_df[['population', 'long', 'lat', 'Density']].copy()
                 low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
                 high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
-                # --- Low density calculation ---
+                # --- Low & High density calculations ---
+                # (This logic is correct, keeping it collapsed for brevity)
                 sampled_low = low.sample(int(0.7 * len(low)))
                 centers_low = randomize_initial_cluster(sampled_low, low_monitors)
                 _, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
@@ -272,7 +272,6 @@ if st_map and st_map.get("last_active_drawing"):
                 low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
                 low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
                 
-                # --- High density calculation ---
                 sampled_high = high.sample(int(0.7 * len(high)))
                 centers_high = randomize_initial_cluster(sampled_high, high_monitors)
                 _, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
@@ -284,12 +283,11 @@ if st_map and st_map.get("last_active_drawing"):
                 low_df = pd.DataFrame({'lat': low_clat, 'lon': low_clong})
                 high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
-                
-                # This is your function from utils.py
                 final_monitors_df = merge_close_centroids(raw_df, threshold=2) 
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
+                st.success("✅ Analysis complete! Results are now stored in the session.")
             
             colors = [
                 '#a6cee3',
@@ -366,40 +364,39 @@ if st_map and st_map.get("last_active_drawing"):
                 '#b15928']
 
 
-            map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
+            if st.session_state["monitor_data"] is not None:
+                st.subheader("Final Optimized Monitor Locations")
+                
+                # Retrieve the data from the session
+                final_monitors_df = st.session_state["monitor_data"]
+                
+                # Display the dataframe
+                st.dataframe(final_monitors_df)
 
-            # The `zoom_start` parameter controls the initial zoom level.
-            m = folium.Map(location=map_center, zoom_start=11)
+                # Create and display the map
+                map_center = [final_monitors_df['lat'].mean(), final_monitors_df['lon'].mean()]
+                m = folium.Map(location=map_center, zoom_start=11)
 
+                for index, row in final_monitors_df.iterrows():
+                    folium.CircleMarker(
+                        location=[row['lat'], row['lon']],
+                        radius=8,
+                        color='#FF0000',
+                        fill=True,
+                        fill_color='#FF0000',
+                        fill_opacity=0.6,
+                        popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}"
+                    ).add_to(m)
 
-            # --- Step 4: Add Points to the Map ---
-            # We will loop through each row in our DataFrame.
-            for index, row in final_monitors_df.iterrows():
-                # For each point, add a CircleMarker.
-                folium.CircleMarker(
-                    location=[row['lat'], row['lon']],
-                    radius=8,  # The size of the circle marker
-                    color='#FF0000',  # The color of the circle's border (red)
-                    fill=True,
-                    fill_color='#FF0000',  # The color inside the circle
-                    fill_opacity=0.6,
-                    popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
-                ).add_to(m)
+                st_folium(m, width=1700, height=700)
 
-            st_data = st_folium(m, width=1700, height=700)
-
-            st.download_button(
+                # Display the download button
+                st.download_button(
                     "Click to download monitor locations",
                     data=final_monitors_df.to_csv(index=False).encode('utf-8'),
                     file_name="optimized_monitor_locations.csv",
                     mime="text/csv"
                 )
-            
-        if st.session_state["monitor_data"] is not None:
-                st.subheader("Final Optimized Monitor Locations")
-                
-                # Retrieve the data from the session
-                final_monitors_df = st.session_state["monitor_data"]
 
     
 
