@@ -285,7 +285,7 @@ if st_map and st_map.get("last_active_drawing"):
                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
                 
                 # This is your function from utils.py
-                final_monitors_df = merge_close_centroids(raw_df, threshold=5) 
+                final_monitors_df = merge_close_centroids(raw_df, threshold=2) 
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
