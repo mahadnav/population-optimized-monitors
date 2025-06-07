@@ -19,6 +19,8 @@ if "population_grid" not in st.session_state:
     st.session_state["population_grid"] = None
 if "population_computed" not in st.session_state:
     st.session_state["population_computed"] = False
+if "monitor_data" not in st.session_state:
+    st.session_state["monitor_data"] = None
 
 
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
@@ -283,11 +285,19 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
+        if not st.session_state["monitor_data"]:
+            centroids_df = pd.DataFrame({
+                'lat': clat,
+                'lon': clong
+            })
+            st.success("✅ Monitor locations optimized.")
+            st.session_state["monitor_data"] = centroids_df
+            st.session_state["monitor_data"] = True
+        else:
+            centroids_df = st.session_state["monitor_data"]
+            st.success("✅ Monitor locations retrieved from session.")
 
-        centroids_df = pd.DataFrame({
-            'lat': clat,
-            'lon': clong
-        })
+
 
         map_center = [centroids_df['lat'].mean(), centroids_df['lon'].mean()]
 
