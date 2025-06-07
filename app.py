@@ -397,7 +397,7 @@ if st_map and st_map.get("last_active_drawing"):
                 popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
             ).add_to(m)
 
-        st_data = st_folium(m, width=1400, height=600)
+        st_data = st_folium(m, width=1500, height=650)
 
     
 
