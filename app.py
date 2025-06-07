@@ -105,7 +105,7 @@ if st_map and st_map.get("last_active_drawing"):
 
 # --- STEP 2: ANALYZE POPULATION DATA ---
 if st.session_state.boundary:
-    st.markdown("## Step 2: Analyze Population Data", anchor=False)
+    st.markdown("Step 2: Analyze Population Data", anchor=False)
     
     # Using a container to group this step's logic and UI
     with st.container(border=True):
