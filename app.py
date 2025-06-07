@@ -156,7 +156,7 @@ if st.session_state.boundary:
                     gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
                     st.session_state.population_grid = gdf[gdf['population'] > 0].reset_index(drop=True)
                     
-            st.success(f"✅ Population data processed for **{len(gdf)}** grid cells.")
+                st.success(f"✅ Population data processed for **{len(gdf)}** grid cells.")
             
             # --- Display Population Map and Data in Tabs ---
             tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
