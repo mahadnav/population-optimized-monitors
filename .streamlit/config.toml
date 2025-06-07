@@ -2,3 +2,5 @@
 maxUploadSize = 5000
 [theme]
 base="light"
+[client]
+toolbarMode = “minimal”
