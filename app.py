@@ -242,7 +242,7 @@ if st_map and st_map.get("last_active_drawing"):
             'clong': high_clong
             })
         
-        raw_df = pd.concat([low_df, high_df], axis=1, ignore_index=True)
+        raw_df = pd.concat([low_df, high_df], axis=0, ignore_index=True)
         
         st.dataframe(raw_df)
 
