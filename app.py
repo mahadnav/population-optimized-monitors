@@ -87,13 +87,15 @@ st.divider()
 
 # --- STEP 1: DEFINE AIRSHED BOUNDARY ---
 st.header("Step 1: Define Your Airshed", anchor=False)
-st.markdown("Use the drawing tool on the map to draw a rectangle over your area of interest. The analysis will begin automatically once a rectangle is drawn.")
+st.markdown("Use the drawing tool on the map to draw a rectangle over your area of interest. " \
+"The analysis will begin automatically once a rectangle is drawn.")
 
 map_center = [25, 65] # Centered on Pakistan
 m = folium.Map(location=map_center, zoom_start=5, tiles="CartoDB positron")
 draw_plugin = folium.plugins.Draw(
     export=False,
-    draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}
+    draw_options={'rectangle': True, 'polygon': False, 'circlemarker': False, 
+                  'circle': False, 'marker': False, 'polyline': False}
 )
 draw_plugin.add_to(m)
 
@@ -161,28 +163,51 @@ if st.session_state.boundary:
 
             with tab1:
                 st.subheader("Population Heatmap")
-                m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8, tiles="CartoDB positron")
+
+                m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
+
+                # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
+                gdf = gdf.fillna(0).reset_index(drop=True)
+                gdf['str_id'] = gdf['id'].astype(str)
+                geojson_data = json.loads(gdf.to_json())
+
+                for i, feature in enumerate(geojson_data['features']):
+                    feature['id'] = gdf.loc[i, 'str_id']
                 
-                # Create and add colormap to map
-                pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
-                colormap = cm.get_cmap('viridis')
-                scalar_map = folium.colormap.LinearColormap(
-                    colors=[colors.rgb2hex(colormap(i)) for i in range(colormap.N)],
-                    vmin=pop_min, vmax=pop_max, caption="Population Count"
-                )
-                m_grid.add_child(scalar_map)
+                # Create colormap for population values
+                pop_min = gdf['population'].min()
+                pop_max = gdf['population'].max()
+                colormap = cm.get_cmap('plasma')
+                norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
+
+                def style_function(feature):
+                    pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
+                    if pop == 0 or pop is None or np.isnan(pop):
+                        # Fully transparent for zero population
+                        return {
+                            'fillOpacity': 0,
+                            'weight': 0
+                        }
+                    else:
+                        color = colors.rgb2hex(colormap(norm(pop))[:3])
+                        return {
+                            'fillColor': color,
+                            'color': 'black',
+                            'weight': 0.5,
+                            'fillOpacity': 0.7,
+                        }
 
                 folium.GeoJson(
-                    gdf,
-                    style_function=lambda feature: {
-                        'fillColor': colormap(feature['properties']['population'] / pop_max) if pop_max > 0 else 'transparent',
-                        'color': 'black',
-                        'weight': 0.5,
-                        'fillOpacity': 0.7 if feature['properties']['population'] > 0 else 0,
-                    },
+                    geojson_data,
+                    name='Population Grid',
+                    style_function=style_function,
                     tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
                 ).add_to(m_grid)
-                st_folium(m_grid, width=1500, height=500, returned_objects=[])
+
+                folium.LayerControl().add_to(m_grid)
+                csv = gdf.to_csv(index=False).encode('utf-8')
+                st.subheader("🗺️ Grid with Population")
+                st_folium(m_grid, width=1500, height=500) 
 
             with tab2:
                 st.subheader("Population Density Analysis")
