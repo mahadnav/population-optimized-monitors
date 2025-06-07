@@ -220,7 +220,7 @@ if st_map and st_map.get("last_active_drawing"):
 
         #### high density
         high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
-        sampled = high_monitors.sample(int(0.7 * len(high)))
+        sampled = high.sample(int(0.7 * len(high)))
         centers = randomize_initial_cluster(sampled, high_monitors)
         points, centers, iters, sse = weighted_kmeans(high, centers, high_monitors)
         high_cluster_populations = pd.DataFrame(points.groupby('cluster')['population'].sum())
