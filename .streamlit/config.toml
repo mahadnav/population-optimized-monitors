@@ -5,7 +5,7 @@ maxUploadSize = 5000
 base="light"
 
 [client]
-toolbarMode = “minimal”
+toolbarMode = "minimal"
 
 [ui]
 hideTopBar = true
