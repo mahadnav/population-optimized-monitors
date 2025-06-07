@@ -167,21 +167,21 @@ if st.session_state.boundary:
                 m_grid = folium.Map(location=[(min_lat + max_lat) / 2, (min_lon + max_lon) / 2], zoom_start=8)
 
                 # Convert gdf to GeoJSON and assign feature ids as string matching gdf 'id'
-                gdf = gdf.fillna(0).reset_index(drop=True)
-                gdf['str_id'] = gdf['id'].astype(str)
-                geojson_data = json.loads(gdf.to_json())
+                display_gdf = gdf.fillna(0).reset_index(drop=True)
+                display_gdf['str_id'] = display_gdf['id'].astype(str)
+                geojson_data = json.loads(display_gdf.to_json())
 
                 for i, feature in enumerate(geojson_data['features']):
-                    feature['id'] = gdf.loc[i, 'str_id']
+                    feature['id'] = display_gdf.loc[i, 'str_id']
                 
                 # Create colormap for population values
-                pop_min = gdf['population'].min()
-                pop_max = gdf['population'].max()
+                pop_min = display_gdf['population'].min()
+                pop_max = display_gdf['population'].max()
                 colormap = cm.get_cmap('plasma')
                 norm = colors.Normalize(vmin=pop_min, vmax=pop_max)
 
                 def style_function(feature):
-                    pop = gdf.loc[gdf['str_id'] == feature['id'], 'population'].values[0]
+                    pop = display_gdf.loc[display_gdf['str_id'] == feature['id'], 'population'].values[0]
                     if pop == 0 or pop is None or np.isnan(pop):
                         # Fully transparent for zero population
                         return {
@@ -205,7 +205,7 @@ if st.session_state.boundary:
                 ).add_to(m_grid)
 
                 folium.LayerControl().add_to(m_grid)
-                csv = gdf.to_csv(index=False).encode('utf-8')
+                csv = display_gdf.to_csv(index=False).encode('utf-8')
                 st.subheader("🗺️ Grid with Population")
                 st_folium(m_grid, width=1500, height=500) 
 
