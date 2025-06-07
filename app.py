@@ -210,7 +210,7 @@ if st_map and st_map.get("last_active_drawing"):
         points, centers, iters, sse = weighted_kmeans(vals, centers, low_monitors)
 
         # Compute total population per cluster
-        cluster_populations = points.groupby('cluster')['population'].sum().to_csv()
+        cluster_populations = pd.DataFrame(points.groupby('cluster')['population'].sum())
         st.dataframe(cluster_populations)
 
         # Extract centroids
