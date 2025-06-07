@@ -85,7 +85,8 @@ st.markdown("### Define Your Airshed")
 # --- Initial Map Display ---
 m = folium.Map(zoom_start=8)
 from folium.plugins import Draw
-Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}).add_to(m)
+Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 
+                                 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, width=1700, height=700, returned_objects=["last_active_drawing"])
 
 def get_worldpop_data():
@@ -133,32 +134,32 @@ if st_map and st_map.get("last_active_drawing"):
 
         # --- Population Calculation Only If Not Already Done ---
         if not st.session_state["population_computed"]:
-            st.info("⏳ Calculating population in each grid cell...")
-            total_geometries = len(gdf)
-            chunk_size = 25
-            population_sums = []
+            with st.spinner("Analyzing population data..."): 
+                total_geometries = len(gdf)
+                chunk_size = 10
+                population_sums = []
 
-            progress_bar = st.progress(0)
-            status_text = st.empty()
+                progress_bar = st.progress(0)
+                status_text = st.empty()
 
-            for i in range(0, total_geometries, chunk_size):
-                chunk_gdf = gdf.iloc[i:i + chunk_size]
-                stats = zonal_stats(chunk_gdf, tif_file, stats="sum", all_touched=True)
-                chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
-                population_sums.extend(chunk_sums)
+                for i in range(0, total_geometries, chunk_size):
+                    chunk_gdf = gdf.iloc[i:i + chunk_size]
+                    stats = zonal_stats(chunk_gdf, tif_file, stats="sum", all_touched=True)
+                    chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
+                    population_sums.extend(chunk_sums)
 
-                processed_count = min(i + chunk_size, total_geometries)
-                percent_complete = processed_count / total_geometries
-                progress_bar.progress(percent_complete)
-                status_text.text(f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})")
+                    processed_count = min(i + chunk_size, total_geometries)
+                    percent_complete = processed_count / total_geometries
+                    progress_bar.progress(percent_complete)
+                    status_text.text(f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})")
 
-            status_text.text(f"Processed {total_geometries} cells.")
-            progress_bar.empty()
-            gdf["population"] = population_sums
+                status_text.text(f"Processed {total_geometries} cells.")
+                progress_bar.empty()
+                gdf["population"] = population_sums
 
-            st.success("✅ Population values computed.")
-            st.session_state["population_grid"] = gdf
-            st.session_state["population_computed"] = True
+                st.success("✅ Population values computed.")
+                st.session_state["population_grid"] = gdf
+                st.session_state["population_computed"] = True
         else:
             gdf = st.session_state["population_grid"]
 
@@ -195,7 +196,7 @@ if st_map and st_map.get("last_active_drawing"):
                 return {
                     'fillColor': color,
                     'color': 'black',
-                    'weight': 0.5,
+                    'weight': 0,
                     'fillOpacity': 0.7,
                 }
 
