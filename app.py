@@ -23,6 +23,48 @@ if "monitor_data" not in st.session_state:
     st.session_state["monitor_data"] = None
 
 
+def calculate_distance(coord1, coord2):
+    from geopy.distance import geodesic
+    return geodesic(coord1, coord2).kilometers
+
+def merge_close_centroids(centroids, threshold=5):
+    merged_centroids = []
+    used = set()
+    
+    for i, row1 in centroids.iterrows():
+        if i in used:
+            continue
+        close_centroids = [row1]
+        for j, row2 in centroids.iterrows():
+            if i != j and j not in used:
+                distance = calculate_distance((row1['clat'], row1['clong']), 
+                                              (row2['clat'], row2['clong']))
+                if distance < threshold:
+                    close_centroids.append(row2)
+                    used.add(j)
+        if len(close_centroids) > 1:
+            mean_lat = np.mean([c['clat'] for c in close_centroids])
+            mean_long = np.mean([c['clong'] for c in close_centroids])
+            merged_centroids.append({'clat': mean_lat, 
+                                     'clong': mean_long})
+        else:
+            merged_centroids.append({'clat': row1['clat'], 
+                                     'clong': row1['clong']})
+        used.add(i)
+
+    new_centroids = pd.DataFrame(merged_centroids)
+    
+    # Check if any centroids are within the threshold distance in the new centroids dataframe
+    for i, row1 in new_centroids.iterrows():
+        for j, row2 in new_centroids.iterrows():
+            if i != j:
+                distance = calculate_distance((row1['clat'], row1['clong']), (row2['clat'], row2['clong']))
+                if distance < threshold:
+                    return merge_close_centroids(new_centroids, threshold)
+    
+    return new_centroids
+
+
 st.set_page_config(page_title="Grid Generator for Airshed", layout="wide")
 st.title("📍 Define Airshed and Generate Population Grid with WorldPop")
 
@@ -198,55 +240,61 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("Cluster Analysis with Weighted K-Means")
 
-        vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-        low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
-        high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
-
-        #### low density
-
-        low_monitors = st.number_input("Number of Clusters for Low Density", min_value=2, max_value=100, value=11, key="low_clusters")
-        sampled = low.sample(int(0.7 * len(low)))
-        centers = randomize_initial_cluster(sampled, low_monitors)
-        points, centers, iters, sse = weighted_kmeans(vals, centers, low_monitors)
-
-        # Compute total population per cluster
-        cluster_populations = pd.DataFrame(points.groupby('cluster')['population'].sum())
-        st.dataframe(cluster_populations)
-
-        # Extract centroids
-        low_centroids = pd.DataFrame(centers)
-        low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
-        low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
-
-        #### high density
-        high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
-        sampled = high.sample(int(0.7 * len(high)))
-        centers = randomize_initial_cluster(sampled, high_monitors)
-        points, centers, iters, sse = weighted_kmeans(high, centers, high_monitors)
-        high_cluster_populations = pd.DataFrame(points.groupby('cluster')['population'].sum())
-        
-        st.write("High Density Cluster Populations:")
-        st.dataframe(high_cluster_populations)
-        high_centroids = pd.DataFrame(centers)
-
-        high_clat = [x[0][1] for _, x in high_centroids.iterrows()]
-        high_clong = [x[0][0] for _, x in high_centroids.iterrows()]
-        
-        low_df = pd.DataFrame({
-            'clat': low_clat,
-            'clong': low_clong
-            })
+        # This is the correct pattern: check the state FIRST.
+        if st.session_state["monitor_data"] is None:
             
-        high_df = pd.DataFrame({   
-            'clat': high_clat,
-            'clong': high_clong
-            })
-        
-        raw_df = pd.concat([low_df, high_df], axis=0, ignore_index=True)
-        
-        st.dataframe(raw_df)
+            st.info("First run: Optimizing monitor locations. This may take a moment...")
 
+            # --- All calculations now happen inside this 'if' block ---
+            
+            vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+            low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
+            high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
+            # --- Low density calculation ---
+            low_monitors = st.number_input("Number of Clusters for Low Density", min_value=2, max_value=100, value=11, key="low_clusters")
+            sampled_low = low.sample(int(0.7 * len(low)))
+            centers_low = randomize_initial_cluster(sampled_low, low_monitors)
+            points_low, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
+            low_centroids = pd.DataFrame(centers_low)
+            low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
+            low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
+            
+            # --- High density calculation ---
+            high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, value=15, key="high_clusters")
+            sampled_high = high.sample(int(0.7 * len(high)))
+            centers_high = randomize_initial_cluster(sampled_high, high_monitors)
+            points_high, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
+            high_centroids = pd.DataFrame(centers_high)
+            high_clat = [x[0][1] for _, x in high_centroids.iterrows()]
+            high_clong = [x[0][0] for _, x in high_centroids.iterrows()]
+
+            # --- Combine and merge the results ---
+            low_df = pd.DataFrame({'lat': low_clat, 'lon': low_clong})
+            high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
+            raw_df = pd.concat([low_df, high_df], ignore_index=True)
+            
+            # Assuming merge_close_centroids is a function in your utils
+            # that returns the final, cleaned-up dataframe of monitor locations.
+            final_monitors_df = merge_close_centroids(raw_df, threshold=5) 
+            
+            st.success("✅ Monitor locations optimized and saved to session.")
+            
+            # --- Save the FINAL result to session state ---
+            st.session_state["monitor_data"] = final_monitors_df
+
+        else:
+            # This runs on every subsequent rerun, instantly retrieving the data.
+            st.info("Retrieving optimized monitor locations from session state...")
+            final_monitors_df = st.session_state["monitor_data"]
+            st.success("✅ Monitor locations retrieved.")
+
+        # --- Now, you can display the final, cleaned data ---
+        # This part of the code is now outside the if/else block.
+        st.subheader("Final Optimized Monitor Locations")
+        st.dataframe(final_monitors_df)
+
+        
         colors = [
             '#a6cee3',
             '#1f78b4',
@@ -321,22 +369,8 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
-        if st.session_state["monitor_data"] is None:
-            st.info("First run: Optimizing monitor locations...")
-            centroids_df = pd.DataFrame({
-                'lat': clat,
-                'lon': clong
-            })
-            st.success("✅ Monitor locations optimized and saved to session.")
-            st.session_state["monitor_data"] = centroids_df
-        else:
-            st.info("Retrieving monitor locations from session state...")
-            centroids_df = st.session_state["monitor_data"]
-            st.success("✅ Monitor locations retrieved from session.")
 
-
-
-        map_center = [centroids_df['lat'].mean(), centroids_df['lon'].mean()]
+        map_center = [final_monitors_df['clat'].mean(), final_monitors_df['clong'].mean()]
 
         # The `zoom_start` parameter controls the initial zoom level.
         m = folium.Map(location=map_center, zoom_start=11)
@@ -344,16 +378,16 @@ if st_map and st_map.get("last_active_drawing"):
 
         # --- Step 4: Add Points to the Map ---
         # We will loop through each row in our DataFrame.
-        for index, row in centroids_df.iterrows():
+        for index, row in final_monitors_df.iterrows():
             # For each point, add a CircleMarker.
             folium.CircleMarker(
-                location=[row['lat'], row['lon']],
+                location=[row['clat'], row['clong']],
                 radius=8,  # The size of the circle marker
                 color='#FF0000',  # The color of the circle's border (red)
                 fill=True,
                 fill_color='#FF0000',  # The color inside the circle
                 fill_opacity=0.6,
-                popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
+                popup=f"Point {index+1}<br>Lat: {row['clat']:.4f}<br>Lon: {row['clong']:.4f}" # What shows up when you click
             ).add_to(m)
 
 
