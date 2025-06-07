@@ -79,7 +79,7 @@ with col1:
 
 with col2:
     st.title("Population-Centric Air Quality Monitor Optimization")
-    st.markdown("A tool to strategically place air quality monitors based on population density.")
+    st.markdown("### A tool to strategically place air quality monitors based on population density.")
     st.write("Developed by Mahad Naveed and the PakAirQuality (PAQI) Team.")
 
 st.divider()
