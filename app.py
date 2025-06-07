@@ -239,59 +239,67 @@ if st_map and st_map.get("last_active_drawing"):
 
         st.subheader("Cluster Analysis with Weighted K-Means")
 
-        low_monitors = st.number_input("Number of Clusters for Low Density", min_value=1, max_value=100, key="low_clusters")
-        high_monitors = st.number_input("Number of Clusters for High Density", min_value=1, max_value=100, key="high_clusters")
+        # --- Step 1: Place User Inputs at the top. They will always be visible. ---
+        col1, col2 = st.columns(2)
+        with col1:
+            low_monitors = st.number_input(
+                "Number of Monitors for Low Density", 
+                min_value=2, max_value=100, value=11, key="low_clusters"
+            )
+        with col2:
+            high_monitors = st.number_input(
+                "Number of Monitors for High Density", 
+                min_value=1, max_value=100, value=15, key="high_clusters"
+            )
 
-        # This is the correct pattern: check the state FIRST.
-        if st.session_state["monitor_data"] is None:
-            
-            st.info("First run: Optimizing monitor locations. This may take a moment...")
+        # --- Step 2: Add a button to trigger the expensive calculation. ---
+        run_button = st.button("🚀 Run Monitor Optimization Analysis")
 
-            # --- All calculations now happen inside this 'if' block ---
-            
-            vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-            low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
-            high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
+        # --- Step 3: Run the calculation ONLY when the button is clicked. ---
+        if run_button:
+            with st.spinner("Optimizing monitor locations... This may take a moment."):
+                # Get the data needed for the calculation
+                vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+                low = vals[vals['Density'] == 'Low'][['population', 'long', 'lat']]
+                high = vals[vals['Density'] == 'High'][['population', 'long', 'lat']]
 
-            # --- Low density calculation ---
-            
-            sampled_low = low.sample(int(0.7 * len(low)))
-            centers_low = randomize_initial_cluster(sampled_low, low_monitors)
-            points_low, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
-            low_centroids = pd.DataFrame(centers_low)
-            low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
-            low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
-            
-            # --- High density calculation ---
-            sampled_high = high.sample(int(0.7 * len(high)))
-            centers_high = randomize_initial_cluster(sampled_high, high_monitors)
-            points_high, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
-            high_centroids = pd.DataFrame(centers_high)
-            high_clat = [x[0][1] for _, x in high_centroids.iterrows()]
-            high_clong = [x[0][0] for _, x in high_centroids.iterrows()]
+                # --- Low density calculation ---
+                sampled_low = low.sample(int(0.7 * len(low)))
+                centers_low = randomize_initial_cluster(sampled_low, low_monitors)
+                _, centers_low, _, _ = weighted_kmeans(low, centers_low, low_monitors)
+                low_centroids = pd.DataFrame(centers_low)
+                low_clat = [x[0][1] for _, x in low_centroids.iterrows()]
+                low_clong = [x[0][0] for _, x in low_centroids.iterrows()]
+                
+                # --- High density calculation ---
+                sampled_high = high.sample(int(0.7 * len(high)))
+                centers_high = randomize_initial_cluster(sampled_high, high_monitors)
+                _, centers_high, _, _ = weighted_kmeans(high, centers_high, high_monitors)
+                high_centroids = pd.DataFrame(centers_high)
+                high_clat = [x[0][1] for _, x in high_centroids.iterrows()]
+                high_clong = [x[0][0] for _, x in high_centroids.iterrows()]
 
-            # --- Combine and merge the results ---
-            low_df = pd.DataFrame({'lat': low_clat, 'lon': low_clong})
-            high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
-            raw_df = pd.concat([low_df, high_df], ignore_index=True)
-            
-            final_monitors_df = merge_close_centroids(raw_df, threshold=5) 
-            
-            st.success("✅ Monitor locations optimized and saved to session.")
-            
-            # --- Save the FINAL result to session state ---
-            st.session_state["monitor_data"] = final_monitors_df
+                # --- Combine and merge the results ---
+                low_df = pd.DataFrame({'lat': low_clat, 'lon': low_clong})
+                high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
+                raw_df = pd.concat([low_df, high_df], ignore_index=True)
+                
+                # This is your function from utils.py
+                final_monitors_df = merge_close_centroids(raw_df, threshold=5) 
+                
+                # Save the final result to session state
+                st.session_state["monitor_data"] = final_monitors_df
+                
+                st.success("✅ Monitor locations optimized and saved.")
 
-        else:
-            # This runs on every subsequent rerun, instantly retrieving the data.
-            st.info("Retrieving optimized monitor locations from session state...")
+        # --- Step 4: Always display the result if it exists in the session state. ---
+        if st.session_state["monitor_data"] is not None:
+            st.subheader("Final Optimized Monitor Locations")
+            
+            # Retrieve the data from the session
             final_monitors_df = st.session_state["monitor_data"]
-            st.success("✅ Monitor locations retrieved.")
-
-        # --- Now, you can display the final, cleaned data ---
-        # This part of the code is now outside the if/else block.
-        st.subheader("Final Optimized Monitor Locations")
-        st.dataframe(final_monitors_df)
+            
+            st.dataframe(final_monitors_df)
 
         
         colors = [
