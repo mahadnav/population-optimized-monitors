@@ -397,11 +397,7 @@ if st_map and st_map.get("last_active_drawing"):
                 popup=f"Point {index+1}<br>Lat: {row['lat']:.4f}<br>Lon: {row['lon']:.4f}" # What shows up when you click
             ).add_to(m)
 
-
-        # --- Step 5: Display the Map in Streamlit ---
-        # Use st_folium to render the Folium map object.
-        st.subheader("Interactive Folium Map")
-        st_data = st_folium(m, width=1200, height=600)
+        st_data = st_folium(m, width=1400, height=600)
 
     
 
