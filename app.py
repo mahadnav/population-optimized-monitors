@@ -264,7 +264,7 @@ if st_map and st_map.get("last_active_drawing"):
         st.subheader("Cluster Analysis with Weighted K-Means")
 
         # --- Step 1: Place User Inputs at the top. They will always be visible. ---
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             low_monitors = st.number_input(
                 "Number of Monitors for Low Density", 
@@ -275,7 +275,11 @@ if st_map and st_map.get("last_active_drawing"):
                 "Number of Monitors for High Density", 
                 min_value=1, max_value=100, value=15, key="high_clusters"
             )
-
+        with col3:
+            min_dist = st.number_input(
+                "Minimum Distance Between Monitors (km)", 
+                min_value=1, max_value=10, value=2, key="min_distance"
+            )
         # --- Step 2: Add a button to trigger the expensive calculation. ---
         run_button = st.button("🚀 Run Monitor Optimization Analysis")
 
@@ -307,7 +311,7 @@ if st_map and st_map.get("last_active_drawing"):
                 low_df = pd.DataFrame({'lat': low_clat, 'lon': low_clong})
                 high_df = pd.DataFrame({'lat': high_clat, 'lon': high_clong})
                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
-                final_monitors_df = merge_close_centroids(raw_df, threshold=2) 
+                final_monitors_df = merge_close_centroids(raw_df, threshold=min_dist) 
                 
                 # Save the final result to session state
                 st.session_state["monitor_data"] = final_monitors_df
