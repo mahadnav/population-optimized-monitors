@@ -195,8 +195,8 @@ if st_map and st_map.get("last_active_drawing"):
                 color = colors.rgb2hex(colormap(norm(pop))[:3])
                 return {
                     'fillColor': color,
-                    'color': 'black',
-                    'weight': 0,
+                    'color': None,
+                    'weight': 0.5,
                     'fillOpacity': 0.7,
                 }
 
