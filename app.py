@@ -285,15 +285,16 @@ if st_map and st_map.get("last_active_drawing"):
             '#ffff99',
             '#b15928']
 
-        if not st.session_state["monitor_data"]:
+        if st.session_state["monitor_data"] is None:
+            st.info("First run: Optimizing monitor locations...")
             centroids_df = pd.DataFrame({
                 'lat': clat,
                 'lon': clong
             })
-            st.success("✅ Monitor locations optimized.")
+            st.success("✅ Monitor locations optimized and saved to session.")
             st.session_state["monitor_data"] = centroids_df
-            st.session_state["monitor_data"] = True
         else:
+            st.info("Retrieving monitor locations from session state...")
             centroids_df = st.session_state["monitor_data"]
             st.success("✅ Monitor locations retrieved from session.")
 
