@@ -93,7 +93,7 @@ map_center = [25, 65] # Centered on Pakistan
 m = folium.Map(location=map_center, zoom_start=5, tiles="CartoDB positron")
 draw_plugin = folium.plugins.Draw(
     export=False,
-    draw_options={'rectangle': True, 'polygon': False, 'circlemarker': False, 'polyline': False}
+    draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'marker': False, 'polyline': False}
 )
 draw_plugin.add_to(m)
 
@@ -105,7 +105,7 @@ if st_map and st_map.get("last_active_drawing"):
 
 # --- STEP 2: ANALYZE POPULATION DATA ---
 if st.session_state.boundary:
-    st.markdown("Step 2: Analyze Population Data", anchor=False)
+    st.markdown("## Step 2: Analyze Population Data")
     
     # Using a container to group this step's logic and UI
     with st.container(border=True):
