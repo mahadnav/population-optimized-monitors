@@ -27,7 +27,7 @@ if "monitor_data" not in st.session_state:
 def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).kilometers
 
-def merge_close_centroids(centroids, threshold=5):
+def merge_close_centroids(centroids, threshold=2):
     merged_centroids = []
     used = set()
     
@@ -125,7 +125,7 @@ if st_map and st_map.get("last_active_drawing"):
         if not st.session_state["population_computed"]:
             st.info("⏳ Calculating population in each grid cell...")
             total_geometries = len(gdf)
-            chunk_size = 100
+            chunk_size = 25
             population_sums = []
 
             progress_bar = st.progress(0)
