@@ -120,7 +120,7 @@ with col2:
         color: white;
     }""",
     ):
-        button1 = st.button("🔄 Reset", key="reset")
+        button1 = st.button("🔄 Reset", on_click=False, key="reset")
     if button1:
         reset_analysis()
         st.rerun()
