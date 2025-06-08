@@ -196,14 +196,13 @@ if st.session_state.airshed_confirmed:
             st_folium(m_grid, width=1500, height=500)
 
         with tab2:
-            st.subheader("Population Density Classification")
             density_df = classify_population_density(gdf.copy())
             group_labels = density_df['Density'].unique()
             hist_data = [density_df[density_df['Density'] == label]['population'] for label in group_labels]
             fig = ff.create_distplot(
                 hist_data,
                 group_labels,
-                bin_size=500,
+                bin_size=100,
                 show_hist=True,  # Set to False to only show the density curve (KDE)
                 show_rug=True    # Hides the rug plot at the bottom for a cleaner look
             )
