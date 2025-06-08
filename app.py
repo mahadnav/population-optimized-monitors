@@ -203,15 +203,13 @@ if st.session_state.airshed_confirmed:
             fig = ff.create_distplot(
                 hist_data,
                 group_labels,
-                bin_size=1000,
+                bin_size=500,
                 show_hist=True,  # Set to False to only show the density curve (KDE)
                 show_rug=True    # Hides the rug plot at the bottom for a cleaner look
             )
             fig.update_layout(
-                title_text='Population Density Distribution',
-                xaxis_title='Population Count per Cell',
-                yaxis_title='Density',
-                legend_title='Density Level'
+                xaxis_title='Population Count',
+                yaxis_title='Count',
             )
             st.plotly_chart(fig)
 
