@@ -44,6 +44,16 @@ def init_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
+def reset_analysis():
+    """Explicitly resets all session state variables for a new analysis run."""
+    st.session_state.boundary = None
+    st.session_state.grid_gdf = None
+    st.session_state.population_grid = None
+    st.session_state.monitor_data = None
+    st.session_state.airshed_confirmed = False
+    st.session_state.population_computed = False
+    st.session_state.bounds = None
+
 init_session_state()
 
 # --- Helper Functions ---
@@ -104,13 +114,14 @@ Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': 
 st_map = st_folium(m, width=1700, height=500, returned_objects=["last_active_drawing"])
 
 # --- Logic to detect a new drawing and require confirmation ---
-if st_map and st_map.get("last_active_drawing"):
+if st_map and st.session_state.get("last_active_drawing"):
     new_drawing = st_map["last_active_drawing"]
     if new_drawing != st.session_state.last_drawn_boundary:
+        # A new airshed was drawn. Reset everything for a fresh start.
+        reset_analysis() 
+        
+        # Now, update the last_drawn_boundary with the new one
         st.session_state.last_drawn_boundary = new_drawing
-        # Reset all downstream data and confirmations
-        init_session_state() # Reset to defaults
-        st.session_state.last_drawn_boundary = new_drawing # Keep the new drawing
         st.rerun()
 
 # --- Confirmation Button ---
@@ -154,7 +165,7 @@ if st.session_state.airshed_confirmed:
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            if st.button("Calculate Population Density", type="primary", use_container_width=True):
+            if st.button("Calculate Population Density", type="primary"):
                 with st.spinner("Analyzing population data..."):
                     gdf = st.session_state.grid_gdf
                     with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
