@@ -174,7 +174,7 @@ if st.session_state.airshed_confirmed:
                     
                     # --- Progress Bar and Chunking Logic ---
                     total_geometries = len(gdf)
-                    chunk_size = 500  # Increased for better performance
+                    chunk_size = 10
                     population_sums = []
 
                     st.write("Starting population analysis...")
@@ -302,7 +302,6 @@ if st.session_state.airshed_confirmed:
                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
                 st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
                 st.success("✅ Optimization complete!")
-                st.rerun()
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
