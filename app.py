@@ -205,7 +205,7 @@ if st.session_state.airshed_confirmed:
                 density_df,
                 x="population",
                 color="Density", # This automatically creates 'Low' and 'High' groups
-                nbins=500,
+                nbins=250,
                 marginal="rug",  # Adds the rug plot at the bottom, like in your original image
                 barmode='overlay' # Overlays the histograms
             )
