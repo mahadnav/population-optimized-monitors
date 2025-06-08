@@ -108,7 +108,7 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
-_, col2, _ = st.columns([2.5, 1, 2.5], vertical_alignment="center")
+_, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
 with col2:
     if st.button("🔄 Reset", type="primary"):
         reset_analysis()
