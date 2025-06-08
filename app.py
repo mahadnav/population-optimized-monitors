@@ -108,9 +108,11 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
-if st.button("🔄 Reset and Start New Analysis", use_container_width=True):
-    reset_analysis()
-    st.rerun()
+_, col2, _ = st.columns([2, 1, 2], vertical_alignment="center")
+with col2:
+    if st.button("🔄 Reset", primary=True):
+        reset_analysis()
+        st.rerun()
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
