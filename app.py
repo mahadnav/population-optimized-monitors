@@ -4,6 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
+from folium.plugins import Draw
 from streamlit_folium import st_folium # type: ignore
 from shapely.geometry import box
 from rasterstats import zonal_stats
@@ -57,6 +58,37 @@ def reset_analysis():
     st.session_state.airshed_confirmed = False
     st.session_state.population_computed = False
     st.session_state.bounds = None
+
+def add_tile_layers(folium_map):
+    """Adds multiple popular tile layer options to a Folium map."""
+    
+    # Add the default tile layer which is light and clean
+    folium.TileLayer('CartoDB positron', name='Light Mode', control=True).add_to(folium_map)
+    
+    # Add a dark mode tile layer
+    folium.TileLayer('CartoDB dark_matter', name='Dark Mode', control=True).add_to(folium_map)
+    
+    # Add a standard street map
+    folium.TileLayer('OpenStreetMap', name='Street Map', control=True).add_to(folium_map)
+    
+    # Add a terrain map
+    folium.TileLayer('Stamen Terrain', name='Terrain', control=True).add_to(folium_map)
+
+    # Add a satellite view (requires the 'xyzservices' library)
+    try:
+        import xyzservices.providers as xyz
+        folium.TileLayer(
+            tiles=xyz.Esri.WorldImagery,
+            attr='Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            name='Satellite View',
+            control=True
+        ).add_to(folium_map)
+    except ImportError:
+        # If xyzservices is not installed, we simply skip adding the satellite layer
+        st.warning("Could not import 'xyzservices'. To enable the satellite map layer, please install it (`pip install xyzservices`).")
+
+    # Add the layer control panel to the map, allowing users to switch
+    folium.LayerControl().add_to(folium_map)
 
 init_session_state()
 
@@ -141,8 +173,8 @@ with col2:
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
-m = folium.Map(zoom_start=10, tiles="CartoDB positron", no_wrap=True)
-from folium.plugins import Draw
+m = folium.Map(location=[30.3753, 69.3451], zoom_start=5, tiles=None, no_wrap=True) # Set tiles=None initially
+add_tile_layers(m)
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
