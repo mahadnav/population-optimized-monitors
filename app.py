@@ -16,6 +16,7 @@ import branca.colormap as bcm
 import json
 import base64
 import os
+import time
 import tempfile
 from geopy.distance import geodesic
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
@@ -241,12 +242,12 @@ if st.session_state.airshed_confirmed:
 
 
             density_categories = [
-            {'label': 'Very Low',  'min': 0,      'max': 100,    'color': '#2ECC71', 'range_text': '0 - 100'},
-            {'label': 'Low',       'min': 101,    'max': 500,    'color': '#F1C40F', 'range_text': '101 - 500'},
-            {'label': 'Moderate',  'min': 501,    'max': 2000,   'color': '#E67E22', 'range_text': '501 - 2,000'},
-            {'label': 'High',      'min': 2001,   'max': 5000,   'color': '#E74C3C', 'range_text': '2,001 - 5,000'},
-            {'label': 'Very High', 'min': 5001,   'max': 10000,  'color': '#8E44AD', 'range_text': '5,001 - 10,000'},
-            {'label': 'Extreme',   'min': 10001,  'max': float('inf'), 'color': '#C0392B', 'range_text': '10,001+'}
+            {'label': 'Very Low',  'min': 0,      'max': 100,    'color': '#fee5d9', 'range_text': '0 - 100'},
+            {'label': 'Low',       'min': 101,    'max': 500,    'color': '#fcbba1', 'range_text': '101 - 500'},
+            {'label': 'Moderate',  'min': 501,    'max': 2000,   'color': '#fc9272', 'range_text': '501 - 2,000'},
+            {'label': 'High',      'min': 2001,   'max': 5000,   'color': '#fb6a4a', 'range_text': '2,001 - 5,000'},
+            {'label': 'Very High', 'min': 5001,   'max': 10000,  'color': '#de2d26', 'range_text': '5,001 - 10,000'},
+            {'label': 'Extreme',   'min': 10001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '10,001+'}
         ]
 
         # Helper function to get the color for a given population value
@@ -383,7 +384,7 @@ if st.session_state.airshed_confirmed:
                     raw_df = pd.concat([low_df, high_df], ignore_index=True)
                     st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
                     st.success("✅ Optimization complete!")
-                    time.sleep(2)  # Short delay to allow user to see the success message
+                    time.sleep(2)
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
