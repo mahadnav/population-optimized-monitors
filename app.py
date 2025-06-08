@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -111,7 +112,16 @@ st.divider()
 
 _, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
 with col2:
-    if st.button("🔄 Reset", type="secondary"):
+    with stylable_container(
+    "green",
+    css_styles="""
+    button {
+        background-color: #0000FF;
+        color: white;
+    }""",
+    ):
+        button1 = st.button("🔄 Reset", key="reset")
+    if button1:
         reset_analysis()
         st.rerun()
 
@@ -176,7 +186,7 @@ if st.session_state.airshed_confirmed:
     # --- STEP 3: RUN POPULATION ANALYSIS ---
     if st.session_state.cached_raster and not st.session_state.population_computed:
         st.markdown("#### Run Population Analysis")
-        st.info("The grid and population data are ready. Click the button to start the calculation.")
+        st.info("Click the button to compute zonal statistics.")
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
