@@ -70,9 +70,6 @@ def add_tile_layers(folium_map):
     
     # Add a standard street map
     folium.TileLayer('OpenStreetMap', name='Street Map', control=True).add_to(folium_map)
-    
-    # Add a terrain map
-    folium.TileLayer('Stamen Terrain', name='Terrain', control=True).add_to(folium_map)
 
     # Add a satellite view (requires the 'xyzservices' library)
     try:
