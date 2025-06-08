@@ -383,6 +383,7 @@ if st.session_state.airshed_confirmed:
                     raw_df = pd.concat([low_df, high_df], ignore_index=True)
                     st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
                     st.success("✅ Optimization complete!")
+                    time.sleep(2)  # Short delay to allow user to see the success message
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
