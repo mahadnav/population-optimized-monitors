@@ -114,7 +114,7 @@ Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': 
 st_map = st_folium(m, width=1700, height=500, returned_objects=["last_active_drawing"])
 
 # --- Logic to detect a new drawing and require confirmation ---
-if st_map and st.session_state.get("last_active_drawing"):
+if st_map and st_map.get("last_active_drawing"):
     new_drawing = st_map["last_active_drawing"]
     if new_drawing != st.session_state.last_drawn_boundary:
         # A new airshed was drawn. Reset everything for a fresh start.
@@ -222,7 +222,7 @@ if st.session_state.airshed_confirmed:
         with tab1:
             st.subheader("Population Heatmap")
             map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-            m_grid = folium.Map(location=map_center, zoom_start=8)
+            m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
             
             pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
             mpl_colormap = cm.get_cmap('inferno')
