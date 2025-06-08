@@ -214,10 +214,9 @@ if st.session_state.airshed_confirmed:
 
     # --- STEP 4: REVIEW POPULATION DATA ---
     if st.session_state.population_computed:
-        st.markdown("#### Review Population Data")
         gdf = st.session_state.population_grid
         bounds = st.session_state.bounds
-        tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
+        tab1, tab2, tab3 = st.tabs(["Population Map", "Population Distribution", "Download Grid Data"])
 
         with tab1:
             st.subheader("Population Heatmap")
@@ -242,12 +241,12 @@ if st.session_state.airshed_confirmed:
 
 
             density_categories = [
-            {'label': 'Very Low',  'min': 0,      'max': 100,    'color': '#fee5d9', 'range_text': '0 - 100'},
-            {'label': 'Low',       'min': 101,    'max': 500,    'color': '#fcbba1', 'range_text': '101 - 500'},
-            {'label': 'Moderate',  'min': 501,    'max': 2000,   'color': '#fc9272', 'range_text': '501 - 2,000'},
-            {'label': 'High',      'min': 2001,   'max': 5000,   'color': '#fb6a4a', 'range_text': '2,001 - 5,000'},
-            {'label': 'Very High', 'min': 5001,   'max': 10000,  'color': '#de2d26', 'range_text': '5,001 - 10,000'},
-            {'label': 'Extreme',   'min': 10001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '10,001+'}
+            {'label': 'Very Low',  'min': 0,      'max': 10,    'color': '#fee5d9', 'range_text': '0 - 100'},
+            {'label': 'Low',       'min': 11,    'max': 100,    'color': '#fcbba1', 'range_text': '101 - 500'},
+            {'label': 'Moderate',  'min': 101,    'max': 500,   'color': '#fc9272', 'range_text': '501 - 2,000'},
+            {'label': 'High',      'min': 501,   'max': 2000,   'color': '#fb6a4a', 'range_text': '2,001 - 5,000'},
+            {'label': 'Very High', 'min': 2001,   'max': 5000,  'color': '#de2d26', 'range_text': '5,001 - 10,000'},
+            {'label': 'Extreme',   'min': 5001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '10,001+'}
         ]
 
         # Helper function to get the color for a given population value
