@@ -184,7 +184,8 @@ if st.session_state.airshed_confirmed:
             pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
             mpl_colormap = cm.get_cmap('inferno')
             inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
-            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, max_labels=3, tick_labels=['Low', 'Medium', 'High'])
+            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, 
+                                          max_labels=3, tick_labels=['Low', 'Medium', 'High'])
 
             geojson_data = json.loads(gdf.to_json())
             def style_function(feature):
@@ -251,10 +252,10 @@ if st.session_state.airshed_confirmed:
                 if not low.empty and low_monitors > 0:
                     _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
                     st.write(centers_low)
-                    low_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_low])
+                    low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
                 if not high.empty and high_monitors > 0:
                     _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
-                    high_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_high])
+                    high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
                 st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
