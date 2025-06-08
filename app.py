@@ -47,11 +47,11 @@ def init_session_state():
 
 def reset_analysis():
     """Explicitly resets all session state variables for a new analysis run."""
-    init_session_state()
     st.session_state.boundary = None
     st.session_state.grid_gdf = None
     st.session_state.population_grid = None
     st.session_state.monitor_data = None
+    st.session_state.last_drawn_boundary = None # Also reset the last drawing
     st.session_state.airshed_confirmed = False
     st.session_state.population_computed = False
     st.session_state.bounds = None
@@ -108,6 +108,10 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
+if st.button("🔄 Reset and Start New Analysis", use_container_width=True):
+    reset_analysis()
+    st.rerun()
+
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=8, tiles="CartoDB positron")
@@ -117,14 +121,7 @@ st_map = st_folium(m, width=1700, height=500, returned_objects=["last_active_dra
 
 # --- Logic to detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
-    new_drawing = st_map["last_active_drawing"]
-    if new_drawing != st.session_state.last_drawn_boundary:
-        # A new airshed was drawn. Reset everything for a fresh start.
-        reset_analysis() 
-        
-        # Now, update the last_drawn_boundary with the new one
-        st.session_state.last_drawn_boundary = new_drawing
-        st.rerun()
+    st.session_state.last_drawn_boundary = st_map["last_active_drawing"]
 
 # --- Confirmation Button ---
 if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
