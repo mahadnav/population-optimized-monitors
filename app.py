@@ -117,7 +117,7 @@ def get_worldpop_data():
         st.stop()
     return uploaded_file
 
-# --- Logic to detect a new drawing and require confirmation ---
+# --- Detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
     new_drawing = st_map["last_active_drawing"]
     
@@ -139,7 +139,7 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
         st.session_state.airshed_confirmed = True
         st.rerun()
 
-# --- STEP 2: GENERATE GRID AND UPLOAD DATA (This section is gated by confirmation) ---
+# --- STEP 2: GENERATE GRID AND UPLOAD DATA ---
 if st.session_state.get("airshed_confirmed"):
     st.markdown("---")
     st.markdown("### Step 2: Generate Grid & Upload Population Data")
@@ -177,7 +177,7 @@ if st.session_state.get("airshed_confirmed"):
     if not tif_file:
         st.warning("Please upload a raster file to continue.")
         st.stop()
-
+    else:
         # --- Population Calculation Only If Not Already Done ---
         if not st.session_state["population_computed"]:
             with st.spinner("Analyzing population data..."): 
