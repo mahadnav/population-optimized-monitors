@@ -116,10 +116,12 @@ if st_map and st_map.get("last_active_drawing"):
 # --- Confirmation Button ---
 if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
     st.warning("An airshed has been drawn. Please confirm to proceed.")
-    if st.button("✅ Confirm Airshed and Proceed", use_container_width=True):
-        st.session_state.boundary = st.session_state.last_drawn_boundary
-        st.session_state.airshed_confirmed = True
-        st.rerun()
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        if st.button("✅ Confirm Airshed and Proceed"):
+            st.session_state.boundary = st.session_state.last_drawn_boundary
+            st.session_state.airshed_confirmed = True
+            st.rerun()
 
 # --- STEP 2: GENERATE GRID & UPLOAD DATA ---
 if st.session_state.airshed_confirmed:
@@ -150,21 +152,54 @@ if st.session_state.airshed_confirmed:
         st.markdown("#### Run Population Analysis")
         st.info("The grid and population data are ready. Click the button to start the calculation.")
         
-        if st.button("Calculate Population Density", use_container_width=True, type="primary"):
-            with st.spinner("Analyzing population data... This may take a moment."):
-                gdf = st.session_state.grid_gdf
-                with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
-                    tmp.write(tif_file.getvalue())
-                    tmp_path = tmp.name
-                
-                stats = zonal_stats(gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
-                os.remove(tmp_path)
-                
-                gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
-                st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
-                st.session_state.population_computed = True
-                st.success("✅ Population analysis complete!")
-                st.rerun()
+        col1, col2, col3 = st.columns([2, 1, 2])
+        with col2:
+            if st.button("Calculate Population Density", type="primary", use_container_width=True):
+                with st.spinner("Analyzing population data..."):
+                    gdf = st.session_state.grid_gdf
+                    with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+                        tmp.write(tif_file.getvalue())
+                        tmp_path = tmp.name
+                    
+                    # --- Progress Bar and Chunking Logic ---
+                    total_geometries = len(gdf)
+                    chunk_size = 500  # Increased for better performance
+                    population_sums = []
+
+                    st.write("Starting population analysis...")
+                    # The progress bar can also contain text
+                    progress_bar = st.progress(0, text="Initializing...")
+
+                    for i in range(0, total_geometries, chunk_size):
+                        chunk_gdf = gdf.iloc[i:i + chunk_size]
+                        
+                        # Run stats on the chunk
+                        stats = zonal_stats(chunk_gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
+                        
+                        chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
+                        population_sums.extend(chunk_sums)
+
+                        # --- Update Progress Bar ---
+                        processed_count = min(i + chunk_size, total_geometries)
+                        percent_complete = processed_count / total_geometries
+                        progress_text = f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})"
+                        progress_bar.progress(percent_complete, text=progress_text)
+
+                    # --- Finalize and Clean Up ---
+                    progress_bar.empty() # Remove the progress bar upon completion
+                    os.remove(tmp_path)  # Clean up the temporary file
+                    
+                    # CRITICAL: Assign the calculated sums to the dataframe
+                    gdf["population"] = population_sums
+                    
+                    st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
+                    st.session_state.population_computed = True
+                    
+                    st.success("✅ Population analysis complete!")
+                    # Use a short delay before rerunning to allow the user to see the success message
+                    import time
+                    time.sleep(1)
+                    st.rerun()
 
     # --- STEP 4: REVIEW POPULATION DATA ---
     if st.session_state.population_computed:
