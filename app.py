@@ -177,7 +177,6 @@ if st.session_state.airshed_confirmed:
                     chunk_size = 10
                     population_sums = []
 
-                    st.write("Starting population analysis...")
                     # The progress bar can also contain text
                     progress_bar = st.progress(0, text="Initializing...")
 
@@ -221,24 +220,104 @@ if st.session_state.airshed_confirmed:
 
         with tab1:
             st.subheader("Population Heatmap")
-            map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-            m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
+            # map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
+            # m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
             
-            pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
-            mpl_colormap = cm.get_cmap('inferno')
-            inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
-            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, 
-                                          max_labels=3, tick_labels=['Low', 'Medium', 'High'])
+            # pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
+            # mpl_colormap = cm.get_cmap('inferno')
+            # inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
+            # colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, 
+            #                               max_labels=3, tick_labels=['Low', 'Medium', 'High'])
 
-            geojson_data = json.loads(gdf.to_json())
-            def style_function(feature):
-                pop = feature['properties']['population']
-                return {'fillColor': colormap(pop), 'color': 'none', 'weight': 0, 'fillOpacity': 0.7}
+            # geojson_data = json.loads(gdf.to_json())
+            # def style_function(feature):
+            #     pop = feature['properties']['population']
+            #     return {'fillColor': colormap(pop), 'color': 'none', 'weight': 0, 'fillOpacity': 0.7}
             
-            folium.GeoJson(geojson_data, name='Population Grid', style_function=style_function,
-                        tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])).add_to(m_grid)
-            colormap.add_to(m_grid)
-            st_folium(m_grid, width=1500, height=500)
+            # folium.GeoJson(geojson_data, name='Population Grid', style_function=style_function,
+            #             tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])).add_to(m_grid)
+            # colormap.add_to(m_grid)
+            # st_folium(m_grid, width=1500, height=500)
+
+
+            density_categories = [
+            {'label': 'Very Low',  'min': 0,      'max': 100,    'color': '#2ECC71', 'range_text': '0 - 100'},
+            {'label': 'Low',       'min': 101,    'max': 500,    'color': '#F1C40F', 'range_text': '101 - 500'},
+            {'label': 'Moderate',  'min': 501,    'max': 2000,   'color': '#E67E22', 'range_text': '501 - 2,000'},
+            {'label': 'High',      'min': 2001,   'max': 5000,   'color': '#E74C3C', 'range_text': '2,001 - 5,000'},
+            {'label': 'Very High', 'min': 5001,   'max': 10000,  'color': '#8E44AD', 'range_text': '5,001 - 10,000'},
+            {'label': 'Extreme',   'min': 10001,  'max': float('inf'), 'color': '#C0392B', 'range_text': '10,001+'}
+        ]
+
+        # Helper function to get the color for a given population value
+        def get_color_for_population(population):
+            for category in density_categories:
+                if category['min'] <= population <= category['max']:
+                    return category['color']
+            return '#808080' # Default grey for any outliers
+
+        # 2. CREATE A STYLE FUNCTION FOR THE MAP
+        # This function ensures the map colors match the legend colors.
+        def style_function(feature):
+            pop = feature['properties'].get('population', 0)
+            return {
+                'fillColor': get_color_for_population(pop),
+                'color': 'none', # No borders for the cells
+                'weight': 0,
+                'fillOpacity': 0.75
+            }
+
+        # --- Map Creation ---
+        bounds = st.session_state.bounds
+        map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
+        m_grid = folium.Map(location=map_center, zoom_start=8)
+
+        geojson_data = json.loads(gdf.to_json())
+
+        folium.GeoJson(
+            geojson_data,
+            name='Population Grid',
+            style_function=style_function,
+            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
+        ).add_to(m_grid)
+
+
+        # 3. BUILD AND ADD THE CUSTOM HTML LEGEND
+        # This HTML and CSS code creates the horizontal legend like your example.
+        legend_header_parts = []
+        legend_range_parts = []
+
+        for category in density_categories:
+            header = f'<div style="flex: 1; text-align: center; padding: 4px; background-color:{category["color"]}; border: 1px solid #333; color: white;">{category["label"]}</div>'
+            range_text = f'<div style="flex: 1; text-align: center; padding: 4px; border: 1px solid #333;">{category["range_text"]}</div>'
+            legend_header_parts.append(header)
+            legend_range_parts.append(range_text)
+
+        legend_html = f'''
+            <div style="position: fixed; 
+                        bottom: 20px; left: 20px; 
+                        z-index:9999; 
+                        border:2px solid grey; 
+                        background-color:rgba(255, 255, 255, 0.9);
+                        padding: 5px;
+                        font-size: 14px;
+                        font-family: Arial, sans-serif;
+                        min-width: 500px;
+                        ">
+                <div style="display: flex; flex-direction: row; font-weight: bold; justify-content: space-around;">
+                    {''.join(legend_header_parts)}
+                </div>
+                <div style="display: flex; flex-direction: row; justify-content: space-around;">
+                    {''.join(legend_range_parts)}
+                </div>
+            </div>
+        '''
+
+        # Add the custom legend to the map
+        from branca.element import Element
+        m_grid.get_root().html.add_child(Element(legend_html))
+
+        st_folium(m_grid, width=1500, height=500)
 
         with tab2:
             st.subheader("Population Count Distribution")
