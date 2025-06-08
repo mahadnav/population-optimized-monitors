@@ -144,117 +144,117 @@ if st.session_state.airshed_confirmed:
     tif_file = st.file_uploader("📂 Upload a WorldPop GeoTIFF (.tif) file", type=["tif", "tiff"])
     st.write("Sample data: [WorldPop GeoTIFF United Kingdom](https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/GBR/gbr_ppp_2020_UNadj.tif)")
 
-# --- STEP 3: RUN POPULATION ANALYSIS ---
-if tif_file and not st.session_state.population_computed:
-    st.markdown("---")
-    st.markdown("### Step 3: Run Population Analysis")
-    st.info("The grid and population data are ready. Click the button to start the calculation.")
-    
-    if st.button("Calculate Population Density", use_container_width=True, type="primary"):
-        with st.spinner("Analyzing population data... This may take a moment."):
-            gdf = st.session_state.grid_gdf
-            with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
-                tmp.write(tif_file.getvalue())
-                tmp_path = tmp.name
-            
-            stats = zonal_stats(gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
-            os.remove(tmp_path)
-            
-            gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
-            st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
-            st.session_state.population_computed = True
-            st.success("✅ Population analysis complete!")
-            st.rerun()
-
-# --- STEP 4: REVIEW POPULATION DATA ---
-if st.session_state.population_computed:
-    st.markdown("---")
-    st.markdown("### Step 4: Review Population Data")
-    gdf = st.session_state.population_grid
-    bounds = st.session_state.bounds
-    tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
-
-    with tab1:
-        st.subheader("Population Heatmap")
-        map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-        m_grid = folium.Map(location=map_center, zoom_start=8)
+    # --- STEP 3: RUN POPULATION ANALYSIS ---
+    if tif_file and not st.session_state.population_computed:
+        st.markdown("---")
+        st.markdown("### Step 3: Run Population Analysis")
+        st.info("The grid and population data are ready. Click the button to start the calculation.")
         
-        pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
-        mpl_colormap = cm.get_cmap('inferno')
-        inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
-        colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, caption='Population per Grid Cell')
+        if st.button("Calculate Population Density", use_container_width=True, type="primary"):
+            with st.spinner("Analyzing population data... This may take a moment."):
+                gdf = st.session_state.grid_gdf
+                with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+                    tmp.write(tif_file.getvalue())
+                    tmp_path = tmp.name
+                
+                stats = zonal_stats(gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
+                os.remove(tmp_path)
+                
+                gdf["population"] = [s['sum'] if s and s['sum'] is not None else 0 for s in stats]
+                st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
+                st.session_state.population_computed = True
+                st.success("✅ Population analysis complete!")
+                st.rerun()
 
-        geojson_data = json.loads(gdf.to_json())
-        def style_function(feature):
-            pop = feature['properties']['population']
-            return {'fillColor': colormap(pop), 'color': 'none', 'weight': 0, 'fillOpacity': 0.7}
-        
-        folium.GeoJson(geojson_data, name='Population Grid', style_function=style_function,
-                       tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])).add_to(m_grid)
-        colormap.add_to(m_grid)
-        st_folium(m_grid, width=1500, height=500)
+    # --- STEP 4: REVIEW POPULATION DATA ---
+    if st.session_state.population_computed:
+        st.markdown("---")
+        st.markdown("### Step 4: Review Population Data")
+        gdf = st.session_state.population_grid
+        bounds = st.session_state.bounds
+        tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
 
-    with tab2:
-        st.subheader("Population Density Classification")
-        density_df = classify_population_density(gdf.copy())
-        fig = sns.displot(data=density_df, x='population', hue='Density', palette='viridis', kind='hist', kde=True)
-        fig.set_axis_labels("Population Count per Cell", "Number of Cells")
-        st.pyplot(fig)
-
-    with tab3:
-        st.subheader("Download Processed Population Data")
-        csv = gdf.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
-    
-    # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
-    st.markdown("---")
-    st.markdown("### Step 5: Configure and Run Monitor Optimization")
-    density_df['long'] = density_df.geometry.centroid.x
-    density_df['lat'] = density_df.geometry.centroid.y
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        low_monitors = st.number_input("Monitors for Low Density", min_value=1, value=5)
-    with col2:
-        high_monitors = st.number_input("Monitors for High Density", min_value=1, value=10)
-    with col3:
-        min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
-
-    if st.button("🚀 Run Monitor Optimization Analysis", use_container_width=True):
-        with st.spinner("Optimizing monitor locations..."):
-            vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-            low = vals[vals['Density'] == 'Low']
-            high = vals[vals['Density'] == 'High']
+        with tab1:
+            st.subheader("Population Heatmap")
+            map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
+            m_grid = folium.Map(location=map_center, zoom_start=8)
             
-            low_df, high_df = pd.DataFrame(), pd.DataFrame()
-            if not low.empty and low_monitors > 0:
-                _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
-                low_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_low])
-            if not high.empty and high_monitors > 0:
-                _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
-                high_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_high])
+            pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
+            mpl_colormap = cm.get_cmap('inferno')
+            inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
+            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, caption='Population per Grid Cell')
 
-            raw_df = pd.concat([low_df, high_df], ignore_index=True)
-            st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
-            st.success("✅ Optimization complete!")
-            st.rerun()
+            geojson_data = json.loads(gdf.to_json())
+            def style_function(feature):
+                pop = feature['properties']['population']
+                return {'fillColor': colormap(pop), 'color': 'none', 'weight': 0, 'fillOpacity': 0.7}
+            
+            folium.GeoJson(geojson_data, name='Population Grid', style_function=style_function,
+                        tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])).add_to(m_grid)
+            colormap.add_to(m_grid)
+            st_folium(m_grid, width=1500, height=500)
 
-# --- STEP 6: REVIEW FINAL RESULTS ---
-if st.session_state.monitor_data is not None:
-    st.markdown("---")
-    st.markdown("### Step 6: Review Final Optimized Monitor Locations")
-    final_df = st.session_state.monitor_data
-    tab1, tab2 = st.tabs(["🗺️ Final Monitor Map", "📥 Download Locations"])
-    
-    with tab1:
-        map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
-        m_final = folium.Map(location=map_center, zoom_start=10)
-        folium.GeoJson(st.session_state.population_grid, style_function=lambda x: {'fillColor': 'grey', 'color': 'transparent', 'fillOpacity': 0.2}).add_to(m_final)
-        for index, row in final_df.iterrows():
-            folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
-                                popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
-        st_folium(m_final, width=1700, height=700)
-    with tab2:
-        st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
-        final_csv = final_df.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Download Monitor Locations CSV", data=final_csv, file_name="optimized_monitor_locations.csv", mime="text/csv")
+        with tab2:
+            st.subheader("Population Density Classification")
+            density_df = classify_population_density(gdf.copy())
+            fig = sns.displot(data=density_df, x='population', hue='Density', palette='viridis', kind='hist', kde=True)
+            fig.set_axis_labels("Population Count per Cell", "Number of Cells")
+            st.pyplot(fig)
+
+        with tab3:
+            st.subheader("Download Processed Population Data")
+            csv = gdf.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
+        
+        # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
+        st.markdown("---")
+        st.markdown("### Step 5: Configure and Run Monitor Optimization")
+        density_df['long'] = density_df.geometry.centroid.x
+        density_df['lat'] = density_df.geometry.centroid.y
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            low_monitors = st.number_input("Monitors for Low Density", min_value=1, value=5)
+        with col2:
+            high_monitors = st.number_input("Monitors for High Density", min_value=1, value=10)
+        with col3:
+            min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
+
+        if st.button("🚀 Run Monitor Optimization Analysis", use_container_width=True):
+            with st.spinner("Optimizing monitor locations..."):
+                vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+                low = vals[vals['Density'] == 'Low']
+                high = vals[vals['Density'] == 'High']
+                
+                low_df, high_df = pd.DataFrame(), pd.DataFrame()
+                if not low.empty and low_monitors > 0:
+                    _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+                    low_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_low])
+                if not high.empty and high_monitors > 0:
+                    _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
+                    high_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_high])
+
+                raw_df = pd.concat([low_df, high_df], ignore_index=True)
+                st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
+                st.success("✅ Optimization complete!")
+                st.rerun()
+
+    # --- STEP 6: REVIEW FINAL RESULTS ---
+    if st.session_state.monitor_data is not None:
+        st.markdown("---")
+        st.markdown("### Step 6: Review Final Optimized Monitor Locations")
+        final_df = st.session_state.monitor_data
+        tab1, tab2 = st.tabs(["🗺️ Final Monitor Map", "📥 Download Locations"])
+        
+        with tab1:
+            map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
+            m_final = folium.Map(location=map_center, zoom_start=10)
+            folium.GeoJson(st.session_state.population_grid, style_function=lambda x: {'fillColor': 'grey', 'color': 'transparent', 'fillOpacity': 0.2}).add_to(m_final)
+            for index, row in final_df.iterrows():
+                folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
+                                    popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
+            st_folium(m_final, width=1700, height=700)
+        with tab2:
+            st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
+            final_csv = final_df.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 Download Monitor Locations CSV", data=final_csv, file_name="optimized_monitor_locations.csv", mime="text/csv")
