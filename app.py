@@ -148,7 +148,7 @@ with stylable_container(
     key="map_container_1",
     css_styles="""
         {
-            margin-left: -5rem;
+            margin-left: 0rem;
             margin-right: 0rem;
             padding: 1rem;
             border-radius: 0.5rem;
