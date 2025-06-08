@@ -97,7 +97,7 @@ with col2:
 st.divider()
 
 # --- STEP 1: DEFINE AIRSHED ---
-st.markdown("### Step 1: Define Your Airshed")
+st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=8, tiles="CartoDB positron")
 from folium.plugins import Draw
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
@@ -123,8 +123,7 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
 
 # --- STEP 2: GENERATE GRID & UPLOAD DATA ---
 if st.session_state.airshed_confirmed:
-    st.markdown("---")
-    st.markdown("### Step 2: Generate Grid & Upload Population Data")
+    st.markdown("#### Generate Grid & Upload Population Data")
 
     if st.session_state.grid_gdf is None:
         with st.spinner("Generating analysis grid for the selected airshed..."):
@@ -148,8 +147,7 @@ if st.session_state.airshed_confirmed:
 
     # --- STEP 3: RUN POPULATION ANALYSIS ---
     if tif_file and not st.session_state.population_computed:
-        st.markdown("---")
-        st.markdown("### Step 3: Run Population Analysis")
+        st.markdown("#### Run Population Analysis")
         st.info("The grid and population data are ready. Click the button to start the calculation.")
         
         if st.button("Calculate Population Density", use_container_width=True, type="primary"):
@@ -170,8 +168,7 @@ if st.session_state.airshed_confirmed:
 
     # --- STEP 4: REVIEW POPULATION DATA ---
     if st.session_state.population_computed:
-        st.markdown("---")
-        st.markdown("### Step 4: Review Population Data")
+        st.markdown("#### Review Population Data")
         gdf = st.session_state.population_grid
         bounds = st.session_state.bounds
         tab1, tab2, tab3 = st.tabs(["🗺️ Population Map", "📊 Population Distribution", "📥 Download Data"])
@@ -229,8 +226,7 @@ if st.session_state.airshed_confirmed:
             st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
         
         # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
-        st.markdown("---")
-        st.markdown("### Step 5: Configure and Run Monitor Optimization")
+        st.markdown("#### Configure and Run Monitor Optimization")
         density_df['long'] = density_df.geometry.centroid.x
         density_df['lat'] = density_df.geometry.centroid.y
         
@@ -264,8 +260,7 @@ if st.session_state.airshed_confirmed:
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
-        st.markdown("---")
-        st.markdown("### Step 6: Review Final Optimized Monitor Locations")
+        st.markdown("#### Review Final Optimized Monitor Locations")
         final_df = st.session_state.monitor_data
         tab1, tab2 = st.tabs(["🗺️ Final Monitor Map", "📥 Download Locations"])
         
@@ -275,7 +270,7 @@ if st.session_state.airshed_confirmed:
             folium.GeoJson(
                     st.session_state.boundary,
                     style_function=lambda x: {
-                        'color': 'blue',         # The color of the outline
+                        'color': 'black',         # The color of the outline
                         'weight': 2,             # The thickness of the outline
                         'fillOpacity': 0.0,      # No fill (makes it transparent inside)
                     },
