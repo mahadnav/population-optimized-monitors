@@ -270,7 +270,7 @@ if st.session_state.airshed_confirmed:
         # --- Map Creation ---
         bounds = st.session_state.bounds
         map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-        m_grid = folium.Map(location=map_center, zoom_start=8)
+        m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
 
         geojson_data = json.loads(gdf.to_json())
 
