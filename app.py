@@ -272,7 +272,15 @@ if st.session_state.airshed_confirmed:
         with tab1:
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
             m_final = folium.Map(location=map_center, zoom_start=10)
-            folium.GeoJson(st.session_state.population_grid, style_function=lambda x: {'fillColor': 'grey', 'color': 'black', 'fillOpacity': 0.1}).add_to(m_final)
+            folium.GeoJson(
+                    st.session_state.boundary,
+                    style_function=lambda x: {
+                        'color': 'blue',         # The color of the outline
+                        'weight': 2,             # The thickness of the outline
+                        'fillOpacity': 0.0,      # No fill (makes it transparent inside)
+                    },
+                    name='Airshed Boundary'
+                ).add_to(m_final)
             for index, row in final_df.iterrows():
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=4, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
