@@ -204,8 +204,8 @@ if st.session_state.airshed_confirmed:
                 hist_data,
                 group_labels,
                 bin_size=1000,
-                show_hist=False,  # Set to False to only show the density curve (KDE)
-                show_rug=False    # Hides the rug plot at the bottom for a cleaner look
+                show_hist=True,  # Set to False to only show the density curve (KDE)
+                show_rug=True    # Hides the rug plot at the bottom for a cleaner look
             )
             fig.update_layout(
                 title_text='Population Density Distribution',
