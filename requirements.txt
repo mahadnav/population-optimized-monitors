@@ -17,3 +17,4 @@ seaborn
 geopy
 rasterio
 branca
+plotly
