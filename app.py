@@ -39,7 +39,8 @@ def init_session_state():
         "last_drawn_boundary": None,
         "airshed_confirmed": False,
         "population_computed": False,
-        "bounds": None
+        "bounds": None,
+        "cached_raster": None
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -156,22 +157,36 @@ if st.session_state.airshed_confirmed:
             st.session_state.grid_gdf = gdf
             st.success(f"Grid generated with {len(gdf)} cells.")
 
-    tif_file = st.file_uploader("📂 Upload a WorldPop GeoTIFF (.tif) file", type=["tif", "tiff"])
+    if st.session_state.cached_raster:
+        st.success(f"Using cached raster file: **{st.session_state.cached_raster['name']}**")
+
+    tif_file = st.file_uploader(
+        "Upload a new WorldPop GeoTIFF to replace the cached file",
+        type=["tif", "tiff"]
+    )
+
+    if tif_file:
+        with st.spinner(f"Caching new raster file: {tif_file.name}..."):
+            st.session_state.cached_raster = {
+                "name": tif_file.name,
+                "bytes": tif_file.getvalue()
+            }
+        st.rerun()
     st.write("Sample data: [WorldPop GeoTIFF United Kingdom](https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/GBR/gbr_ppp_2020_UNadj.tif)")
 
     # --- STEP 3: RUN POPULATION ANALYSIS ---
-    if tif_file and not st.session_state.population_computed:
+    if st.session_state.cached_raster and not st.session_state.population_computed:
         st.markdown("#### Run Population Analysis")
         st.info("The grid and population data are ready. Click the button to start the calculation.")
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            if st.button("Calculate Population Density", type="primary"):
-                with st.spinner("Analyzing population data..."):
-                    gdf = st.session_state.grid_gdf
-                    with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
-                        tmp.write(tif_file.getvalue())
-                        tmp_path = tmp.name
+            if st.button("Calculate Population Density", type="primary", use_container_width=True):
+                # Use the cached file's bytes for the analysis
+                raster_bytes = st.session_state.cached_raster['bytes']
+                with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+                    tmp.write(raster_bytes)
+                    tmp_path = tmp.name
                     
                     # --- Progress Bar and Chunking Logic ---
                     total_geometries = len(gdf)
@@ -374,7 +389,6 @@ if st.session_state.airshed_confirmed:
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
                     if not low.empty and low_monitors > 0:
                         _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
-                        st.write(centers_low)
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
                     if not high.empty and high_monitors > 0:
                         _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
