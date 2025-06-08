@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import branca.colormap as bcm
 import json
+import base64
 import os
 import time
 from geopy.distance import geodesic
@@ -70,15 +71,24 @@ st.set_page_config(page_title="Population-Centric Monitoring Network", layout="w
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
-col1, col2 = st.columns([1, 5], vertical_alignment="center")
+col1, col2 = st.columns([5, 1], vertical_alignment="center")
 with col1:
-    # Make sure 'logo.png' is the correct path to your logo file
-    st.image("logo.jpeg", width=150)
-with col2:
     st.title("Population-Centric Air Quality Monitor Optimization")
     st.markdown("### A tool to strategically place air quality monitors based on population density.")
     st.write("Developed by Mahad Naveed and the PakAirQuality (PAQI) Team.")
     st.write("[doi.org/10.5194/egusphere-egu25-4723](https://doi.org/10.5194/egusphere-egu25-4723)")
+with col2:
+    with open("logo.jpeg", "rb") as f:
+        data = f.read()
+        encoded = base64.b64encode(data).decode()
+
+    # 2. Create an HTML string with the encoded image and CSS to disable clicks
+    logo_html = f"""
+        <img src="data:image/jpeg;base64,{encoded}" width="150" style="pointer-events: none;">
+    """
+    
+    # 3. Display the logo using st.markdown
+    st.markdown(logo_html, unsafe_allow_html=True)
 
 st.divider() 
 
