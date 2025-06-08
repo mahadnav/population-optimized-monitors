@@ -113,18 +113,24 @@ st.divider()
 _, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
 with col2:
     with stylable_container(
-        "blue",
+        "blue_button_no_hover",  # It's good practice to give a unique key
         css_styles="""
         button {
             background-color: #3153a5;
             color: white;
-            border: 1px solid #3153a5; /* Set a consistent border */
+            border: 1px solid #3153a5;
         }
 
         button:hover {
-            background-color: #3153a5; /* Keep background color the same */
-            color: white;           /* Keep text color the same */
-            border-color: #3153a5;   /* Keep border color the same */
+            background-color: #3153a5 !important;
+            color: white !important;
+            border-color: #3153a5 !important;
+        }
+        
+        button:active {
+            background-color: #3153a5 !important;
+            color: white !important;
+            border-color: #3153a5 !important;
         }
         """,
     ):
