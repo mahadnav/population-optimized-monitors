@@ -149,7 +149,7 @@ with stylable_container(
     css_styles="""
         {
             margin-left: -5rem;
-            margin-right: -5rem;
+            margin-right: -10rem;
             padding: 0rem;
             border-radius: 0.5rem;
             background-color: #F0F2F6;
