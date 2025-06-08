@@ -241,12 +241,12 @@ if st.session_state.airshed_confirmed:
 
 
             density_categories = [
-            {'label': 'Very Low',  'min': 0,      'max': 10,    'color': '#fee5d9', 'range_text': '0 - 100'},
-            {'label': 'Low',       'min': 11,    'max': 100,    'color': '#fcbba1', 'range_text': '101 - 500'},
-            {'label': 'Moderate',  'min': 101,    'max': 500,   'color': '#fc9272', 'range_text': '501 - 2,000'},
-            {'label': 'High',      'min': 501,   'max': 2000,   'color': '#fb6a4a', 'range_text': '2,001 - 5,000'},
-            {'label': 'Very High', 'min': 2001,   'max': 5000,  'color': '#de2d26', 'range_text': '5,001 - 10,000'},
-            {'label': 'Extreme',   'min': 5001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '10,001+'}
+            {'label': 'Very Low',  'min': 0,      'max': 10,    'color': '#fee5d9', 'range_text': '0 - 10'},
+            {'label': 'Low',       'min': 11,    'max': 100,    'color': '#fcbba1', 'range_text': '10 - 100'},
+            {'label': 'Moderate',  'min': 101,    'max': 500,   'color': '#fc9272', 'range_text': '101 - 500'},
+            {'label': 'High',      'min': 501,   'max': 2000,   'color': '#fb6a4a', 'range_text': '500 - 2,000'},
+            {'label': 'Very High', 'min': 2001,   'max': 5000,  'color': '#de2d26', 'range_text': '2,000 - 5,000'},
+            {'label': 'Extreme',   'min': 5001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '5,000+'}
         ]
 
         # Helper function to get the color for a given population value
