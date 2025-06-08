@@ -71,19 +71,6 @@ def add_tile_layers(folium_map):
     # Add a standard street map
     folium.TileLayer('OpenStreetMap', name='Street Map', control=True).add_to(folium_map)
 
-    # Add a satellite view (requires the 'xyzservices' library)
-    try:
-        import xyzservices.providers as xyz
-        folium.TileLayer(
-            tiles=xyz.Esri.WorldImagery,
-            attr='Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            name='Satellite View',
-            control=True
-        ).add_to(folium_map)
-    except ImportError:
-        # If xyzservices is not installed, we simply skip adding the satellite layer
-        st.warning("Could not import 'xyzservices'. To enable the satellite map layer, please install it (`pip install xyzservices`).")
-
     # Add the layer control panel to the map, allowing users to switch
     folium.LayerControl().add_to(folium_map)
 
