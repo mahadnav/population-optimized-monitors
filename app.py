@@ -113,10 +113,10 @@ st.divider()
 _, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
 with col2:
     with stylable_container(
-    "green",
+    "blue",
     css_styles="""
     button {
-        background-color: #0000FF;
+        background-color: #3153a5;
         color: white;
     }""",
     ):
