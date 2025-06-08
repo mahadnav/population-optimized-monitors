@@ -3,7 +3,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
-from streamlit_folium import st_folium
+from streamlit_folium import st_folium # type: ignore
 from shapely.geometry import box
 from rasterstats import zonal_stats
 import matplotlib.cm as cm
@@ -18,12 +18,19 @@ import time
 from geopy.distance import geodesic
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
 
+# --- Session State Initialization ---
+# This ensures variables persist across reruns
+if "boundary" not in st.session_state:
+    st.session_state.boundary = None
 if "population_grid" not in st.session_state:
-    st.session_state["population_grid"] = None
-if "population_computed" not in st.session_state:
-    st.session_state["population_computed"] = False
+    st.session_state.population_grid = None
 if "monitor_data" not in st.session_state:
-    st.session_state["monitor_data"] = None
+    st.session_state.monitor_data = None
+# --- ADD THESE NEW KEYS ---
+if "last_drawn_boundary" not in st.session_state:
+    st.session_state.last_drawn_boundary = None
+if "airshed_confirmed" not in st.session_state:
+    st.session_state.airshed_confirmed = False
 
 def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).kilometers
@@ -110,40 +117,66 @@ def get_worldpop_data():
         st.stop()
     return uploaded_file
 
+# --- Logic to detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
-    geom = st_map["last_active_drawing"]
-    if geom and geom.get("geometry") and geom["geometry"]["type"] == "Polygon":
-        coords = geom["geometry"]["coordinates"][0]
-        lons, lats = zip(*coords)
-        min_lon, max_lon = min(lons), max(lons)
-        min_lat, max_lat = min(lats), max(lats)
+    new_drawing = st_map["last_active_drawing"]
+    
+    # Check if the drawing has changed
+    if new_drawing != st.session_state.last_drawn_boundary:
+        st.session_state.last_drawn_boundary = new_drawing
+        # A new drawing invalidates any previous confirmation and analysis
+        st.session_state.airshed_confirmed = False
+        st.session_state.boundary = None
+        st.session_state.grid_gdf = None
+        st.rerun()
 
-        # --- Grid Generation ---
-        resolution = 0.01
-        lat_points = np.arange(min_lat, max_lat, resolution)
-        lon_points = np.arange(min_lon, max_lon, resolution)
+# --- Confirmation Button ---
+if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
+    st.warning("An airshed has been drawn. Please confirm to proceed.")
+    if st.button("✅ Confirm Airshed and Proceed to Next Step", use_container_width=True):
+        # Lock in the boundary and set the confirmation flag
+        st.session_state.boundary = st.session_state.last_drawn_boundary
+        st.session_state.airshed_confirmed = True
+        st.rerun()
 
-        records = []
-        id_counter = 1
-        for i, lat in enumerate(lat_points):
-            for j, lon in enumerate(lon_points):
-                geom_box = box(lon, lat, lon + resolution, lat + resolution)
-                records.append({
-                    "id": id_counter,
-                    "left": lon,
-                    "right": lon + resolution,
-                    "top": lat + resolution,
-                    "bottom": lat,
-                    "row_index": i,
-                    "col_index": j,
-                    "geometry": geom_box
-                })
-                id_counter += 1
+# --- STEP 2: GENERATE GRID AND UPLOAD DATA (This section is gated by confirmation) ---
+if st.session_state.get("airshed_confirmed"):
+    st.markdown("---")
+    st.markdown("### Step 2: Generate Grid & Upload Population Data")
 
-        gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
-        st.success(f"Grid generated with {len(gdf)} cells.")
+    # Perform grid generation only once after confirmation
+    if st.session_state.get("grid_gdf") is None:
+        with st.spinner("Generating analysis grid for the selected airshed..."):
+            geom = st.session_state.boundary
+            coords = geom["geometry"]["coordinates"][0]
+            lons, lats = zip(*coords)
+            min_lon, max_lon = min(lons), max(lons)
+            min_lat, max_lat = min(lats), max(lats)
 
-        tif_file = get_worldpop_data()
+            # --- Grid Generation ---
+            resolution = 0.01
+            lat_points = np.arange(min_lat, max_lat, resolution)
+            lon_points = np.arange(min_lon, max_lon, resolution)
+
+            records = []
+            id_counter = 1
+            for i, lat in enumerate(lat_points):
+                for j, lon in enumerate(lon_points):
+                    records.append({
+                        "id": id_counter,
+                        "geometry": box(lon, lat, lon + resolution, lat + resolution)
+                    })
+                    id_counter += 1
+
+            gdf = gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:4326")
+            st.session_state.grid_gdf = gdf # Save the generated grid to the session state
+            st.success(f"Grid generated with {len(gdf)} cells.")
+
+    tif_file = get_worldpop_data()
+    
+    if not tif_file:
+        st.warning("Please upload a raster file to continue.")
+        st.stop()
 
         # --- Population Calculation Only If Not Already Done ---
         if not st.session_state["population_computed"]:
