@@ -197,7 +197,7 @@ if st.session_state.airshed_confirmed:
             st_folium(m_grid, width=1500, height=500)
 
         with tab2:
-            st.subheader("Population Density Classification")
+            st.subheader("Population Count Distribution")
             density_df = classify_population_density(gdf.copy())
 
             # Create a true histogram where the y-axis is the count
@@ -205,7 +205,7 @@ if st.session_state.airshed_confirmed:
                 density_df,
                 x="population",
                 color="Density", # This automatically creates 'Low' and 'High' groups
-                nbins=100,
+                nbins=500,
                 marginal="rug",  # Adds the rug plot at the bottom, like in your original image
                 barmode='overlay' # Overlays the histograms
             )
@@ -215,9 +215,8 @@ if st.session_state.airshed_confirmed:
 
             # Update the layout for clarity
             fig.update_layout(
-                title_text='Population Count Distribution',
                 xaxis_title='Population Count per Cell',
-                yaxis_title='Count of Grid Cells', # This is now a true count
+                yaxis_title='Count of Grid Cells',
                 legend_title='Density Level'
             )
 
