@@ -171,7 +171,6 @@ if st.session_state.airshed_confirmed:
                 "name": tif_file.name,
                 "bytes": tif_file.getvalue()
             }
-        st.rerun()
     st.write("Sample data: [WorldPop GeoTIFF United Kingdom](https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/GBR/gbr_ppp_2020_UNadj.tif)")
 
     # --- STEP 3: RUN POPULATION ANALYSIS ---
@@ -181,7 +180,7 @@ if st.session_state.airshed_confirmed:
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            if st.button("Calculate Population Density", type="primary", use_container_width=True):
+            if st.button("Calculate Population Density", type="primary"):
                 # Use the cached file's bytes for the analysis
                 raster_bytes = st.session_state.cached_raster['bytes']
                 with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
@@ -212,17 +211,16 @@ if st.session_state.airshed_confirmed:
                         progress_bar.progress(percent_complete, text=progress_text)
 
                     # --- Finalize and Clean Up ---
-                    progress_bar.empty() # Remove the progress bar upon completion
-                    os.remove(tmp_path)  # Clean up the temporary file
+                    progress_bar.empty()
+                    os.remove(tmp_path)
                     
-                    # CRITICAL: Assign the calculated sums to the dataframe
+                    # Assign the calculated sums to the dataframe
                     gdf["population"] = population_sums
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
                     
                     st.success("✅ Population analysis complete!")
-                    # Use a short delay before rerunning to allow the user to see the success message
                     import time
                     time.sleep(1)
                     st.rerun()
