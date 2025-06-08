@@ -272,9 +272,9 @@ if st.session_state.airshed_confirmed:
         with tab1:
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
             m_final = folium.Map(location=map_center, zoom_start=10)
-            folium.GeoJson(st.session_state.population_grid, style_function=lambda x: {'fillColor': 'grey', 'color': 'transparent', 'fillOpacity': 0.2}).add_to(m_final)
+            folium.GeoJson(st.session_state.population_grid, style_function=lambda x: {'fillColor': 'grey', 'color': 'transparent', 'fillOpacity': 0.1}).add_to(m_final)
             for index, row in final_df.iterrows():
-                folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
+                folium.CircleMarker(location=[row['lat'], row['lon']], radius=4, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
             st_folium(m_final, width=1700, height=700)
         with tab2:
