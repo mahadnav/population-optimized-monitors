@@ -47,6 +47,7 @@ def init_session_state():
 
 def reset_analysis():
     """Explicitly resets all session state variables for a new analysis run."""
+    init_session_state()
     st.session_state.boundary = None
     st.session_state.grid_gdf = None
     st.session_state.population_grid = None
@@ -298,11 +299,11 @@ if st.session_state.airshed_confirmed:
             <div style="position: fixed; 
                         bottom: 20px; left: 20px; 
                         z-index:9999; 
-                        border:2px solid grey; 
-                        background-color:rgba(255, 255, 255, 0.9);
+                        border:1px solid grey; 
+                        background-color:rgba(255, 255, 255, 1);
                         padding: 5px;
-                        font-size: 14px;
-                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                        font-family: Roboto, sans-serif;
                         min-width: 500px;
                         ">
                 <div style="display: flex; flex-direction: row; font-weight: bold; justify-content: space-around;">
