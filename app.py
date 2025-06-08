@@ -84,7 +84,7 @@ with col2:
 
     # 2. Create an HTML string with the encoded image and CSS to disable clicks
     logo_html = f"""
-        <img src="data:image/jpeg;base64,{encoded}" width="150" style="pointer-events: none;">
+        <img src="data:image/jpeg;base64,{encoded}" width="200" style="pointer-events: none;">
     """
     
     # 3. Display the logo using st.markdown
