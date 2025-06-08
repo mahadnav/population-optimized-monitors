@@ -11,6 +11,7 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.figure_factory as ff
+import plotly.express as px
 import branca.colormap as bcm
 import json
 import base64
@@ -196,20 +197,30 @@ if st.session_state.airshed_confirmed:
             st_folium(m_grid, width=1500, height=500)
 
         with tab2:
+            st.subheader("Population Density Classification")
             density_df = classify_population_density(gdf.copy())
-            group_labels = density_df['Density'].unique()
-            hist_data = [density_df[density_df['Density'] == label]['population'] for label in group_labels]
-            fig = ff.create_distplot(
-                hist_data,
-                group_labels,
-                bin_size=100,
-                show_hist=True,  # Set to False to only show the density curve (KDE)
-                show_rug=True    # Hides the rug plot at the bottom for a cleaner look
+
+            # Create a true histogram where the y-axis is the count
+            fig = px.histogram(
+                density_df,
+                x="population",
+                color="Density", # This automatically creates 'Low' and 'High' groups
+                nbins=100,
+                marginal="rug",  # Adds the rug plot at the bottom, like in your original image
+                barmode='overlay' # Overlays the histograms
             )
+
+            # Make the overlaid bars slightly transparent to see both
+            fig.update_traces(opacity=0.75)
+
+            # Update the layout for clarity
             fig.update_layout(
-                xaxis_title='Population Count',
-                yaxis_title='Count',
+                title_text='Population Count Distribution',
+                xaxis_title='Population Count per Cell',
+                yaxis_title='Count of Grid Cells', # This is now a true count
+                legend_title='Density Level'
             )
+
             st.plotly_chart(fig)
 
         with tab3:
