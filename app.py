@@ -181,6 +181,7 @@ if st.session_state.airshed_confirmed:
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
             if st.button("Calculate Population Density", type="primary"):
+                gdf = st.session_state.grid_gdf
                 # Use the cached file's bytes for the analysis
                 raster_bytes = st.session_state.cached_raster['bytes']
                 with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
