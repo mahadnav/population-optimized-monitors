@@ -156,7 +156,7 @@ with stylable_container(
         }
         """,
 ):
-    st_map = st_folium(m, use_container_width=True, height=900, returned_objects=["last_active_drawing"])
+    st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
 # --- Logic to detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
