@@ -141,7 +141,7 @@ with col2:
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
-m = folium.Map(zoom_start=8, tiles="CartoDB positron")
+m = folium.Map(zoom_start=8, tiles="CartoDB positron", no_wrap=True)
 from folium.plugins import Draw
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 with stylable_container(
@@ -150,7 +150,7 @@ with stylable_container(
         {
             margin-left: -5rem;
             margin-right: 0rem;
-            padding: 0rem;
+            padding: 1rem;
             border-radius: 0.5rem;
             background-color: #F0F2F6;
         }
