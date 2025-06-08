@@ -10,6 +10,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.figure_factory as ff
 import branca.colormap as bcm
 import json
 import base64
@@ -197,9 +198,10 @@ if st.session_state.airshed_confirmed:
         with tab2:
             st.subheader("Population Density Classification")
             density_df = classify_population_density(gdf.copy())
-            fig = sns.displot(data=density_df, x='population', hue='Density', palette='viridis', kind='hist', kde=True)
-            fig.set_axis_labels("Population Count per Cell", "Number of Cells")
-            st.pyplot(fig)
+            fig = ff.create_distplot([density_df['population']], group_labels=[density_df['Density']].unique(), bin_size=1000, show_hist=False)
+            # fig = st.plotly_chart(density_df, x='population', hue='Density', palette='RdBu_r', kind='hist', kde=True)
+            # fig.set_axis_labels("Population Count per Cell", "Number of Cells")
+            st.plotly_chart(fig)
 
         with tab3:
             st.subheader("Download Processed Population Data")
@@ -220,7 +222,7 @@ if st.session_state.airshed_confirmed:
         with col3:
             min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
 
-        if st.button("🚀 Run Monitor Optimization Analysis", use_container_width=True):
+        if st.button("Run Monitor Optimization Analysis", use_container_width=True):
             with st.spinner("Optimizing monitor locations..."):
                 vals = density_df[['population', 'long', 'lat', 'Density']].copy()
                 low = vals[vals['Density'] == 'Low']
@@ -229,6 +231,7 @@ if st.session_state.airshed_confirmed:
                 low_df, high_df = pd.DataFrame(), pd.DataFrame()
                 if not low.empty and low_monitors > 0:
                     _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+                    st.write(centers_low)
                     low_df = pd.DataFrame([{'lat': c[1], 'lon': c[0]} for c in centers_low])
                 if not high.empty and high_monitors > 0:
                     _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
