@@ -113,14 +113,22 @@ st.divider()
 _, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
 with col2:
     with stylable_container(
-    "blue",
-    css_styles="""
-    button {
-        background-color: #3153a5;
-        color: white;
-    }""",
+        "blue",
+        css_styles="""
+        button {
+            background-color: #3153a5;
+            color: white;
+            border: 1px solid #3153a5; /* Set a consistent border */
+        }
+
+        button:hover {
+            background-color: #3153a5; /* Keep background color the same */
+            color: white;           /* Keep text color the same */
+            border-color: #3153a5;   /* Keep border color the same */
+        }
+        """,
     ):
-        button1 = st.button("🔄 Reset", on_click=False, key="reset")
+        button1 = st.button("🔄 Reset", key="reset")
     if button1:
         reset_analysis()
         st.rerun()
