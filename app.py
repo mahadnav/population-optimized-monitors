@@ -198,9 +198,21 @@ if st.session_state.airshed_confirmed:
         with tab2:
             st.subheader("Population Density Classification")
             density_df = classify_population_density(gdf.copy())
-            fig = ff.create_distplot([density_df['population']], group_labels=density_df['Density'].unique(), bin_size=1000, show_hist=False)
-            # fig = st.plotly_chart(density_df, x='population', hue='Density', palette='RdBu_r', kind='hist', kde=True)
-            # fig.set_axis_labels("Population Count per Cell", "Number of Cells")
+            group_labels = density_df['Density'].unique()
+            hist_data = [density_df[density_df['Density'] == label]['population'] for label in group_labels]
+            fig = ff.create_distplot(
+                hist_data,
+                group_labels,
+                bin_size=1000,
+                show_hist=False,  # Set to False to only show the density curve (KDE)
+                show_rug=False    # Hides the rug plot at the bottom for a cleaner look
+            )
+            fig.update_layout(
+                title_text='Population Density Distribution',
+                xaxis_title='Population Count per Cell',
+                yaxis_title='Density',
+                legend_title='Density Level'
+            )
             st.plotly_chart(fig)
 
         with tab3:
