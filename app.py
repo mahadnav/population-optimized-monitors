@@ -157,7 +157,7 @@ with col2:
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
-m = folium.Map(location=[30.3753, 69.3451], zoom_start=5, tiles=None, no_wrap=True) # Set tiles=None initially
+m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
 add_tile_layers(m)
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
