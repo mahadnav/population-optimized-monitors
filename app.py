@@ -405,7 +405,7 @@ if st.session_state.airshed_confirmed:
                     name='Airshed Boundary'
                 ).add_to(m_final)
             for index, row in final_df.iterrows():
-                folium.Circle(location=[row['lat'], row['lon']], radius=4, color='#e63946', fill=True, fill_color='#e63946',
+                folium.Circle(location=[row['lat'], row['lon']], radius=6, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
             st_folium(m_final, width=1700, height=700)
         with tab2:
