@@ -144,7 +144,19 @@ st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=8, tiles="CartoDB positron")
 from folium.plugins import Draw
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
-st_map = st_folium(m, width=1700, height=1000, use_container_width=True, returned_objects=["last_active_drawing"])
+with stylable_container(
+    key="map_container_1",
+    css_styles="""
+        {
+            margin-left: -5rem;
+            margin-right: -5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #F0F2F6;
+        }
+        """,
+):
+    st_map = st_folium(m, use_container_width=True, height=500, returned_objects=["last_active_drawing"])
 
 # --- Logic to detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
