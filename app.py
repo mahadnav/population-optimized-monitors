@@ -363,24 +363,26 @@ if st.session_state.airshed_confirmed:
         with col3:
             min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
 
-        if st.button("Run Monitor Optimization Analysis", use_container_width=True):
-            with st.spinner("Optimizing monitor locations..."):
-                vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-                low = vals[vals['Density'] == 'Low']
-                high = vals[vals['Density'] == 'High']
-                
-                low_df, high_df = pd.DataFrame(), pd.DataFrame()
-                if not low.empty and low_monitors > 0:
-                    _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
-                    st.write(centers_low)
-                    low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
-                if not high.empty and high_monitors > 0:
-                    _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
-                    high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
+        col1, col2, col3 = st.columns([2, 1.5, 2])
+        with col2:
+            if st.button("Optimize Monitoring Network", type="primary"):
+                with st.spinner("Optimizing monitor locations..."):
+                    vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+                    low = vals[vals['Density'] == 'Low']
+                    high = vals[vals['Density'] == 'High']
+                    
+                    low_df, high_df = pd.DataFrame(), pd.DataFrame()
+                    if not low.empty and low_monitors > 0:
+                        _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+                        st.write(centers_low)
+                        low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
+                    if not high.empty and high_monitors > 0:
+                        _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
+                        high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
-                raw_df = pd.concat([low_df, high_df], ignore_index=True)
-                st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
-                st.success("✅ Optimization complete!")
+                    raw_df = pd.concat([low_df, high_df], ignore_index=True)
+                    st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
+                    st.success("✅ Optimization complete!")
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
