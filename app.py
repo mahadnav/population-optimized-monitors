@@ -184,7 +184,7 @@ if st.session_state.airshed_confirmed:
             pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
             mpl_colormap = cm.get_cmap('inferno')
             inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
-            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, tick_labels=['Low', 'Medium', 'High'])
+            colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, max_labels=3, tick_labels=['Low', 'Medium', 'High'])
 
             geojson_data = json.loads(gdf.to_json())
             def style_function(feature):
