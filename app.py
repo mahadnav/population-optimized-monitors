@@ -110,7 +110,7 @@ st.divider()
 
 _, col2, _ = st.columns([2, 1, 2], vertical_alignment="center")
 with col2:
-    if st.button("🔄 Reset", primary=True):
+    if st.button("🔄 Reset", type="primary"):
         reset_analysis()
         st.rerun()
 
