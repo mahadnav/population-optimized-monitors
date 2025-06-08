@@ -262,9 +262,9 @@ if st.session_state.airshed_confirmed:
             pop = feature['properties'].get('population', 0)
             return {
                 'fillColor': get_color_for_population(pop),
-                'color': 'none', # No borders for the cells
+                'color': 'transparent', # No borders for the cells
                 'weight': 0,
-                'fillOpacity': 0.75
+                'fillOpacity': 0.6
             }
 
         # --- Map Creation ---
