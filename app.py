@@ -198,7 +198,7 @@ if st.session_state.airshed_confirmed:
         with tab2:
             st.subheader("Population Density Classification")
             density_df = classify_population_density(gdf.copy())
-            fig = ff.create_distplot([density_df['population']], group_labels=[density_df['Density']].unique(), bin_size=1000, show_hist=False)
+            fig = ff.create_distplot([density_df['population']], group_labels=density_df['Density'].unique(), bin_size=1000, show_hist=False)
             # fig = st.plotly_chart(density_df, x='population', hue='Density', palette='RdBu_r', kind='hist', kde=True)
             # fig.set_axis_labels("Population Count per Cell", "Number of Cells")
             st.plotly_chart(fig)
