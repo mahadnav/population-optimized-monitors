@@ -260,7 +260,7 @@ if st.session_state.airshed_confirmed:
                     os.remove(tmp_path)
                     
                     # Assign the calculated sums to the dataframe
-                    gdf["population"] = population_sums
+                    gdf["population"] = int(population_sums)
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
@@ -296,7 +296,7 @@ if st.session_state.airshed_confirmed:
             for category in density_categories:
                 if category['min'] <= population <= category['max']:
                     return category['color']
-            return '#808080' # Default grey for any outliers
+            return '#808080'
 
         # 2. STYLE FUNCTION FOR THE MAP
         def style_function(feature):
