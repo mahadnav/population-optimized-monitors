@@ -317,7 +317,7 @@ if st.session_state.airshed_confirmed:
             fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', radius=10,
                                     center=dict(lat=0, lon=180), zoom=0,
                                     map_style="open-street-map")
-            fig.show()
+            st.pyplot(fig, use_container_width=True)
 
             # pop_map = st_folium(m_grid, use_container_width=True)
 
