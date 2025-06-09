@@ -358,6 +358,7 @@ if st.session_state.airshed_confirmed:
         # Add the custom legend to the map
         
         m_grid.get_root().html.add_child(Element(legend_html))
+        add_tile_layers(m_grid)  # Add tile layers to the map
         pop_map = st_folium(m_grid, use_container_width=True)
 
         with tab2:
