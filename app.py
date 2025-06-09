@@ -260,7 +260,7 @@ if st.session_state.airshed_confirmed:
                     os.remove(tmp_path)
                     
                     # Assign the calculated sums to the dataframe
-                    gdf["population"] = int(population_sums)
+                    gdf["population"] = gdf["population"].round(0).astype(int)
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
