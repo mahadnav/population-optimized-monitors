@@ -130,8 +130,8 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
-_, col2, _ = st.columns([3, 1, 2.5], vertical_alignment="center")
-with col2:
+_, _, col3 = st.columns([3, 3, 1], vertical_alignment="center")
+with col3:
     with stylable_container(
         "blue_button_no_hover",  # It's good practice to give a unique key
         css_styles="""
@@ -260,7 +260,8 @@ if st.session_state.airshed_confirmed:
                     os.remove(tmp_path)
                     
                     # Assign the calculated sums to the dataframe
-                    gdf["population"] = gdf["population"].astype(int)
+                    st.dataframe(gdf.head())  # Show sample data before population assignment
+                    gdf["population"] = np.round(gdf["population"])
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
