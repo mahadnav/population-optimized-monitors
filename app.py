@@ -280,101 +280,42 @@ if st.session_state.airshed_confirmed:
         tab1, tab2, tab3 = st.tabs(["Population Map", "Population Distribution", "Download Grid Data"])
 
         with tab1:
-            st.subheader("Population Heatmap")
+            st.subheader("Population Density Heatmap")
 
             map_gdf = gdf.copy()
             map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
 
-            density_categories = [
-            {'label': 'Very Low',  'min': 0,      'max': 10,    'color': '#fee5d9', 'range_text': '0 - 10'},
-            {'label': 'Low',       'min': 11,    'max': 100,    'color': '#fcbba1', 'range_text': '10 - 100'},
-            {'label': 'Moderate',  'min': 101,    'max': 500,   'color': '#fc9272', 'range_text': '101 - 500'},
-            {'label': 'High',      'min': 501,   'max': 2000,   'color': '#fb6a4a', 'range_text': '500 - 2,000'},
-            {'label': 'Very High', 'min': 2001,   'max': 5000,  'color': '#de2d26', 'range_text': '2,000 - 5,000'},
-            {'label': 'Extreme',   'min': 5001,  'max': float('inf'), 'color': '#a50f15', 'range_text': '5,000+'}
-        ]
+            # --- Map Creation ---
+            bounds = st.session_state.bounds
+            map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
+            m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
+            add_tile_layers(m_grid) # Your function to add tile layers
 
-        # Helper function to get the color for a given population value
-        def get_color_for_population(population):
-            for category in density_categories:
-                if category['min'] <= population <= category['max']:
-                    return category['color']
-            return '#808080'
+            # --- 1. PREPARE DATA FOR THE HEATMAP ---
+            # The HeatMap plugin needs a list of points in the format: [latitude, longitude, weight]
+            
+            # First, get the center coordinates (latitude and longitude) for each grid cell
+            map_gdf['lon'] = map_gdf.geometry.centroid.x
+            map_gdf['lat'] = map_gdf.geometry.centroid.y
+            
+            # Create the list of lists from your DataFrame
+            heat_data = map_gdf[['lat', 'lon', 'population']].values.tolist()
 
-        # 2. STYLE FUNCTION FOR THE MAP
-        def style_function(feature):
-            pop = feature['properties'].get('population', 0)
-            return {
-                'fillColor': get_color_for_population(pop),
-                'color': 'transparent',
-                'weight': 0,
-                'fillOpacity': 0.6
-            }
+            # --- 2. CREATE AND ADD THE HEATMAP LAYER ---
+            # The old GeoJson, style_function, and legend code has been removed.
+            # It is replaced by this HeatMap plugin.
+            from folium.plugins import HeatMap
 
-        # --- Map Creation ---
-        bounds = st.session_state.bounds
-        map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-        m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
+            HeatMap(
+                data=heat_data,
+                name="Population Heatmap",
+                min_opacity=0.2,
+                radius=15,  # Radius of each point in pixels (adjust for more/less blur)
+                blur=10,    # Amount of blur (higher means smoother)
+                max_zoom=1
+            ).add_to(m_grid)
 
-        # Use the cleaned map_gdf to create the GeoJSON
-        geojson_data = json.loads(map_gdf.to_json())
-
-        folium.GeoJson(
-            geojson_data,
-            name='Population Grid',
-            style_function=style_function,
-            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:']),
-            show=True
-        ).add_to(m_grid)
-
-
-        # 3. BUILD AND ADD THE CUSTOM HTML LEGEND
-        # This HTML and CSS code creates the horizontal legend like your example.
-        legend_header_parts, legend_range_parts = [], []
-
-        for category in density_categories:
-            header = f'<div style="flex: 1; text-align: center; padding: 4px; background-color:{category["color"]}; border: 1px solid #333; color: white;">{category["label"]}</div>'
-            range_text = f'<div style="flex: 1; text-align: center; padding: 4px; border: 1px solid #333;">{category["range_text"]}</div>'
-            legend_header_parts.append(header)
-            legend_range_parts.append(range_text)
-
-        legend_html = f'''
-            <div style="position: fixed; 
-                        bottom: 20px; left: 20px; 
-                        z-index:9999; 
-                        border:1px solid grey; 
-                        background-color:rgba(255, 255, 255, 1);
-                        padding: 5px;
-                        font-size: 12px;
-                        font-family: Roboto, sans-serif;
-                        min-width: 500px;
-                        ">
-                <div style="display: flex; flex-direction: row; font-weight: bold; justify-content: space-around;">
-                    {''.join(legend_header_parts)}
-                </div>
-                <div style="display: flex; flex-direction: row; justify-content: space-around;">
-                    {''.join(legend_range_parts)}
-                </div>
-            </div>
-        '''
-
-        # Add the custom legend to the map
-        
-        m_grid.get_root().html.add_child(Element(legend_html))
-        add_tile_layers(m_grid)  # Add tile layers to the map
-
-        from folium.plugins import HeatMap
-        heat_data = map_gdf[['lat', 'lon', 'population']].values.tolist()
-        HeatMap(
-            data=heat_data,
-            name="Population Heatmap",
-            min_opacity=0.2,
-            radius=15,  # Radius of each point in pixels (adjust for more/less blur)
-            blur=10,    # Amount of blur (higher means smoother)
-            max_zoom=1
-        ).add_to(m_grid)
-        
-        pop_map = st_folium(m_grid, use_container_width=True)
+            st_folium(m_grid, use_container_width=True)
 
         with tab2:
             st.subheader("Population Count Distribution")
