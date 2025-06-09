@@ -312,7 +312,6 @@ if st.session_state.airshed_confirmed:
         bounds = st.session_state.bounds
         map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
         m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
-        add_tile_layers(m_grid) # Your function to add tile layers
 
         # Use the cleaned map_gdf to create the GeoJSON
         geojson_data = json.loads(map_gdf.to_json())
@@ -359,8 +358,7 @@ if st.session_state.airshed_confirmed:
         # Add the custom legend to the map
         
         m_grid.get_root().html.add_child(Element(legend_html))
-
-        st_folium(m_grid, use_container_width=True)
+        pop_map = st_folium(m_grid, use_container_width=True)
 
         with tab2:
             st.subheader("Population Count Distribution")
