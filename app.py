@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_extras.stylable_container import stylable_container
+from streamlit_extras.stylable_container import stylable_container # type: ignore
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -310,13 +310,12 @@ if st.session_state.airshed_confirmed:
                     return category['color']
             return '#808080' # Default grey for any outliers
 
-        # 2. CREATE A STYLE FUNCTION FOR THE MAP
-        # This function ensures the map colors match the legend colors.
+        # 2. STYLE FUNCTION FOR THE MAP
         def style_function(feature):
             pop = feature['properties'].get('population', 0)
             return {
                 'fillColor': get_color_for_population(pop),
-                'color': 'transparent', # No borders for the cells
+                'color': 'transparent',
                 'weight': 0,
                 'fillOpacity': 0.6
             }
@@ -324,7 +323,8 @@ if st.session_state.airshed_confirmed:
         # --- Map Creation ---
         bounds = st.session_state.bounds
         map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-        m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
+        m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
+        add_tile_layers(m_grid)
 
         geojson_data = json.loads(gdf.to_json())
 
@@ -371,7 +371,7 @@ if st.session_state.airshed_confirmed:
         from branca.element import Element
         m_grid.get_root().html.add_child(Element(legend_html))
 
-        st_folium(m_grid, width=1500, height=500)
+        st_folium(m_grid, use_container_width=True)
 
         with tab2:
             st.subheader("Population Count Distribution")
