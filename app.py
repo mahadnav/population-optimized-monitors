@@ -311,8 +311,9 @@ if st.session_state.airshed_confirmed:
                                  radius=10,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
                                 map_style="open-street-map",
-                                color_continuous_scale=px.colors.sequential.Bluered_r,
-                                height=1000
+                                color_continuous_scale=px.colors.sequential.Plasma,
+                                height=1000,
+                                opacity=0.7
                                 )
             st.plotly_chart(fig, use_container_width=True)
 
