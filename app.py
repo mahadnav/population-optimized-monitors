@@ -310,8 +310,8 @@ if st.session_state.airshed_confirmed:
                 data=heat_data,
                 name="Population Heatmap",
                 min_opacity=0.2,
-                radius=15,  # Radius of each point in pixels (adjust for more/less blur)
-                blur=10,    # Amount of blur (higher means smoother)
+                radius=15,
+                blur=10,
                 max_zoom=1
             ).add_to(m_grid)
 
@@ -348,63 +348,63 @@ if st.session_state.airshed_confirmed:
             csv = gdf.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
         
-        # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
-        st.markdown("#### Configure and Run Monitor Optimization")
-        density_df['long'] = density_df.geometry.centroid.x
-        density_df['lat'] = density_df.geometry.centroid.y
+    #     # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
+    #     st.markdown("#### Configure and Run Monitor Optimization")
+    #     density_df['long'] = density_df.geometry.centroid.x
+    #     density_df['lat'] = density_df.geometry.centroid.y
         
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            low_monitors = st.number_input("Monitors for Low Density", min_value=1, value=5)
-        with col2:
-            high_monitors = st.number_input("Monitors for High Density", min_value=1, value=10)
-        with col3:
-            min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
+    #     col1, col2, col3 = st.columns(3)
+    #     with col1:
+    #         low_monitors = st.number_input("Monitors for Low Density", min_value=1, value=5)
+    #     with col2:
+    #         high_monitors = st.number_input("Monitors for High Density", min_value=1, value=10)
+    #     with col3:
+    #         min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
 
-        col1, col2, col3 = st.columns([2, 1.5, 2])
-        with col2:
-            if st.button("Optimize Monitoring Network", type="primary"):
-                with st.spinner("Optimizing monitor locations..."):
-                    vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-                    low = vals[vals['Density'] == 'Low']
-                    high = vals[vals['Density'] == 'High']
+    #     col1, col2, col3 = st.columns([2, 1.5, 2])
+    #     with col2:
+    #         if st.button("Optimize Monitoring Network", type="primary"):
+    #             with st.spinner("Optimizing monitor locations..."):
+    #                 vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+    #                 low = vals[vals['Density'] == 'Low']
+    #                 high = vals[vals['Density'] == 'High']
                     
-                    low_df, high_df = pd.DataFrame(), pd.DataFrame()
-                    if not low.empty and low_monitors > 0:
-                        _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
-                        low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
-                    if not high.empty and high_monitors > 0:
-                        _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
-                        high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
+    #                 low_df, high_df = pd.DataFrame(), pd.DataFrame()
+    #                 if not low.empty and low_monitors > 0:
+    #                     _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+    #                     low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
+    #                 if not high.empty and high_monitors > 0:
+    #                     _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
+    #                     high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
-                    raw_df = pd.concat([low_df, high_df], ignore_index=True)
-                    st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
-                    st.success("✅ Optimization complete!")
-                    time.sleep(2)
+    #                 raw_df = pd.concat([low_df, high_df], ignore_index=True)
+    #                 st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
+    #                 st.success("✅ Optimization complete!")
+    #                 time.sleep(2)
 
-    # --- STEP 6: REVIEW FINAL RESULTS ---
-    if st.session_state.monitor_data is not None:
-        st.markdown("#### Review Final Optimized Monitor Locations")
-        final_df = st.session_state.monitor_data
-        tab1, tab2 = st.tabs(["Optimized Monitors Map", "Download Data"])
+    # # --- STEP 6: REVIEW FINAL RESULTS ---
+    # if st.session_state.monitor_data is not None:
+    #     st.markdown("#### Review Final Optimized Monitor Locations")
+    #     final_df = st.session_state.monitor_data
+    #     tab1, tab2 = st.tabs(["Optimized Monitors Map", "Download Data"])
         
-        with tab1:
-            map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
-            m_final = folium.Map(location=map_center, zoom_start=10, tiles="CartoDB positron", width=1700, height=700)
-            folium.GeoJson(
-                    st.session_state.boundary,
-                    style_function=lambda x: {
-                        'color': 'black',         # The color of the outline
-                        'weight': 2,             # The thickness of the outline
-                        'fillOpacity': 0.0,      # No fill (makes it transparent inside)
-                    },
-                    name='Airshed Boundary'
-                ).add_to(m_final)
-            for index, row in final_df.iterrows():
-                folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
-                                    popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
-            st_folium(m_final, width=1700, height=700)
-        with tab2:
-            st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
-            final_csv = final_df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download Monitor Locations CSV", data=final_csv, file_name="optimized_monitor_locations.csv", mime="text/csv")
+    #     with tab1:
+    #         map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
+    #         m_final = folium.Map(location=map_center, zoom_start=10, tiles="CartoDB positron", width=1700, height=700)
+    #         folium.GeoJson(
+    #                 st.session_state.boundary,
+    #                 style_function=lambda x: {
+    #                     'color': 'black',         # The color of the outline
+    #                     'weight': 2,             # The thickness of the outline
+    #                     'fillOpacity': 0.0,      # No fill (makes it transparent inside)
+    #                 },
+    #                 name='Airshed Boundary'
+    #             ).add_to(m_final)
+    #         for index, row in final_df.iterrows():
+    #             folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
+    #                                 popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
+    #         st_folium(m_final, width=1700, height=700)
+    #     with tab2:
+    #         st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
+    #         final_csv = final_df.to_csv(index=False).encode('utf-8')
+    #         st.download_button("📥 Download Monitor Locations CSV", data=final_csv, file_name="optimized_monitor_locations.csv", mime="text/csv")
