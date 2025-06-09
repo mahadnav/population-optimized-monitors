@@ -168,7 +168,7 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
         with stylable_container(
-        "blue_button_no_hover",  # It's good practice to give a unique key
+        "airshed_button",  # It's good practice to give a unique key
         css_styles="""
         button {
             background-color: #3153a5;
