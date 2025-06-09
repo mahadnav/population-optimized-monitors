@@ -321,7 +321,8 @@ if st.session_state.airshed_confirmed:
             geojson_data,
             name='Population Grid',
             style_function=style_function,
-            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])
+            tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:']),
+            show=True
         ).add_to(m_grid)
 
 
