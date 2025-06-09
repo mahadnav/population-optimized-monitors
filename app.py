@@ -146,7 +146,7 @@ with col3:
         }
         """,
     ):
-        button1 = st.button("🔄 Reset", key="reset")
+        button1 = st.button("Reset", key="reset")
     if button1:
         reset_analysis()
         st.rerun()
