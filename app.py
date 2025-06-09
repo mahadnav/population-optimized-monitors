@@ -177,9 +177,9 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
         }
 
         button:hover {
-            background-color: #3153a5 !important;
-            color: white !important;
-            border-color: #3153a5 !important;
+            background-color: white;
+            color: #3153a5;
+            border-color: white;    
         }
         
         button:active {
@@ -326,7 +326,7 @@ if st.session_state.airshed_confirmed:
                 min_opacity=0.2,
                 radius=15,
                 blur=10,
-                max_zoom=1
+                show=True
             ).add_to(m_grid)
 
             st_folium(m_grid, use_container_width=True)
