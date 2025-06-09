@@ -316,8 +316,6 @@ if st.session_state.airshed_confirmed:
             heat_data = map_gdf[['lat', 'lon', 'population']].values.tolist()
 
             # --- 2. CREATE AND ADD THE HEATMAP LAYER ---
-            # The old GeoJson, style_function, and legend code has been removed.
-            # It is replaced by this HeatMap plugin.
             from folium.plugins import HeatMap
 
             HeatMap(
@@ -329,7 +327,7 @@ if st.session_state.airshed_confirmed:
                 show=True
             ).add_to(m_grid)
 
-            st_folium(m_grid, use_container_width=True)
+            pop_map = st_folium(m_grid, use_container_width=True)
 
         with tab2:
             st.subheader("Population Count Distribution")
