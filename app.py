@@ -130,7 +130,7 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
-_, _, col3 = st.columns([3, 3, 1], vertical_alignment="center")
+_, _, col3 = st.columns([4, 4, 1], vertical_alignment="center")
 with col3:
     with stylable_container(
         "blue_button_no_hover",  # It's good practice to give a unique key
@@ -263,6 +263,7 @@ if st.session_state.airshed_confirmed:
                     # Assign the calculated sums to the dataframet
                     gdf["population"] = population_sums
                     gdf["population"] = gdf["population"].astype(int)
+            
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
@@ -361,6 +362,18 @@ if st.session_state.airshed_confirmed:
         
         m_grid.get_root().html.add_child(Element(legend_html))
         add_tile_layers(m_grid)  # Add tile layers to the map
+
+        from folium.plugins import HeatMap
+        heat_data = map_gdf[['lat', 'lon', 'population']].values.tolist()
+        HeatMap(
+            data=heat_data,
+            name="Population Heatmap",
+            min_opacity=0.2,
+            radius=15,  # Radius of each point in pixels (adjust for more/less blur)
+            blur=10,    # Amount of blur (higher means smoother)
+            max_zoom=1
+        ).add_to(m_grid)
+        
         pop_map = st_folium(m_grid, use_container_width=True)
 
         with tab2:
