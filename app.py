@@ -65,17 +65,9 @@ def reset_analysis():
 
 def add_tile_layers(folium_map):
     """Adds multiple popular tile layer options to a Folium map."""
-    
-    # Add the default tile layer which is light and clean
     folium.TileLayer('CartoDB positron', name='Light Mode', control=True).add_to(folium_map)
-    
-    # Add a dark mode tile layer
     folium.TileLayer('CartoDB dark_matter', name='Dark Mode', control=True).add_to(folium_map)
-    
-    # Add a standard street map
     folium.TileLayer('OpenStreetMap', name='Street Map', control=True).add_to(folium_map)
-
-    # Add the layer control panel to the map, allowing users to switch
     folium.LayerControl().add_to(folium_map)
 
 init_session_state()
@@ -175,10 +167,32 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
     st.warning("An airshed has been drawn. Please confirm to proceed.")
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
-        if st.button("✅ Confirm Airshed and Proceed"):
-            st.session_state.boundary = st.session_state.last_drawn_boundary
-            st.session_state.airshed_confirmed = True
-            st.rerun()
+        with stylable_container(
+        "blue_button_no_hover",  # It's good practice to give a unique key
+        css_styles="""
+        button {
+            background-color: #3153a5;
+            color: white;
+            border: 1px solid #3153a5;
+        }
+
+        button:hover {
+            background-color: #3153a5 !important;
+            color: white !important;
+            border-color: #3153a5 !important;
+        }
+        
+        button:active {
+            background-color: white;
+            color: #3153a5;
+            border-color: white;
+        }
+        """):
+            button2 = st.button("Confirm Airshed", key="airshed")
+            if button2:
+                st.session_state.boundary = st.session_state.last_drawn_boundary
+                st.session_state.airshed_confirmed = True
+                st.rerun()
 
 # --- STEP 2: GENERATE GRID & UPLOAD DATA ---
 if st.session_state.airshed_confirmed:
