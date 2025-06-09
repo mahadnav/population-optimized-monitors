@@ -6,8 +6,10 @@ import numpy as np
 import folium
 from folium.plugins import Draw
 from streamlit_folium import st_folium # type: ignore
+
 from shapely.geometry import box
 from rasterstats import zonal_stats
+
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
@@ -15,6 +17,8 @@ import seaborn as sns
 import plotly.figure_factory as ff
 import plotly.express as px
 import branca.colormap as bcm
+from branca.element import Element
+
 import json
 import base64
 import os
@@ -274,25 +278,9 @@ if st.session_state.airshed_confirmed:
 
         with tab1:
             st.subheader("Population Heatmap")
-            # map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-            # m_grid = folium.Map(location=map_center, zoom_start=8, tiles="CartoDB positron", width=1700, height=700)
-            
-            # pop_min, pop_max = gdf['population'].min(), gdf['population'].max()
-            # mpl_colormap = cm.get_cmap('inferno')
-            # inferno_colors = [colors.rgb2hex(mpl_colormap(i)) for i in np.linspace(0, 1, 10)]
-            # colormap = bcm.LinearColormap(colors=inferno_colors, vmin=pop_min, vmax=pop_max, 
-            #                               max_labels=3, tick_labels=['Low', 'Medium', 'High'])
 
-            # geojson_data = json.loads(gdf.to_json())
-            # def style_function(feature):
-            #     pop = feature['properties']['population']
-            #     return {'fillColor': colormap(pop), 'color': 'none', 'weight': 0, 'fillOpacity': 0.7}
-            
-            # folium.GeoJson(geojson_data, name='Population Grid', style_function=style_function,
-            #             tooltip=folium.GeoJsonTooltip(fields=['population'], aliases=['Population:'])).add_to(m_grid)
-            # colormap.add_to(m_grid)
-            # st_folium(m_grid, width=1500, height=500)
-
+            map_gdf = gdf.copy()
+            map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
 
             density_categories = [
             {'label': 'Very Low',  'min': 0,      'max': 10,    'color': '#fee5d9', 'range_text': '0 - 10'},
@@ -324,9 +312,10 @@ if st.session_state.airshed_confirmed:
         bounds = st.session_state.bounds
         map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
         m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
-        add_tile_layers(m_grid)
+        add_tile_layers(m_grid) # Your function to add tile layers
 
-        geojson_data = json.loads(gdf.to_json())
+        # Use the cleaned map_gdf to create the GeoJSON
+        geojson_data = json.loads(map_gdf.to_json())
 
         folium.GeoJson(
             geojson_data,
@@ -338,8 +327,7 @@ if st.session_state.airshed_confirmed:
 
         # 3. BUILD AND ADD THE CUSTOM HTML LEGEND
         # This HTML and CSS code creates the horizontal legend like your example.
-        legend_header_parts = []
-        legend_range_parts = []
+        legend_header_parts, legend_range_parts = [], []
 
         for category in density_categories:
             header = f'<div style="flex: 1; text-align: center; padding: 4px; background-color:{category["color"]}; border: 1px solid #333; color: white;">{category["label"]}</div>'
@@ -368,7 +356,7 @@ if st.session_state.airshed_confirmed:
         '''
 
         # Add the custom legend to the map
-        from branca.element import Element
+        
         m_grid.get_root().html.add_child(Element(legend_html))
 
         st_folium(m_grid, use_container_width=True)
