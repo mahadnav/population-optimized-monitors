@@ -304,13 +304,6 @@ if st.session_state.airshed_confirmed:
             map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
 
             import plotly.express as px
-            # m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
-            # add_tile_layers(m_grid) # Your function to add tile layers
-
-            # --- 1. PREPARE DATA FOR THE HEATMAP ---
-            # The HeatMap plugin needs a list of points in the format: [latitude, longitude, weight]
-            
-            # First, get the center coordinates (latitude and longitude) for each grid cell
             map_gdf['lon'] = map_gdf.geometry.centroid.x
             map_gdf['lat'] = map_gdf.geometry.centroid.y
 
@@ -318,7 +311,8 @@ if st.session_state.airshed_confirmed:
                                  radius=10,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
                                 map_style="open-street-map",
-                                height=600
+                                color_continuous_scale=px.colors.sequential.Bluered_r,
+                                height=1000
                                 )
             st.plotly_chart(fig, use_container_width=True)
 
