@@ -315,9 +315,10 @@ if st.session_state.airshed_confirmed:
             map_gdf['lat'] = map_gdf.geometry.centroid.y
 
             fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', radius=10,
-                                    center=dict(lat=0, lon=180), zoom=0,
+                                    center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
                                     map_style="open-street-map")
-            st.pyplot(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
+
 
             # pop_map = st_folium(m_grid, use_container_width=True)
 
