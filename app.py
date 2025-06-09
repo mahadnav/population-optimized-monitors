@@ -239,6 +239,7 @@ if st.session_state.airshed_confirmed:
 
                     # The progress bar can also contain text
                     progress_bar = st.progress(0, text="Initializing...")
+                    time.sleep(1)  # Short delay to ensure the progress bar is visible
 
                     for i in range(0, total_geometries, chunk_size):
                         chunk_gdf = gdf.iloc[i:i + chunk_size]
@@ -259,9 +260,9 @@ if st.session_state.airshed_confirmed:
                     progress_bar.empty()
                     os.remove(tmp_path)
                     
-                    # Assign the calculated sums to the dataframe
-                    st.dataframe(gdf.head())  # Show sample data before population assignment
-                    gdf["population"] = np.round(gdf["population"])
+                    # Assign the calculated sums to the dataframet
+                    gdf["population"] = population_sums
+                    gdf["population"] = gdf["population"].astype(int)
                     
                     st.session_state.population_grid = gdf[gdf['population'] > 0].copy().reset_index(drop=True)
                     st.session_state.population_computed = True
