@@ -122,7 +122,7 @@ with col2:
     st.markdown(logo_html, unsafe_allow_html=True)
 st.divider()
 
-_, _, col3 = st.columns([4, 4, 1], vertical_alignment="center")
+_, _, col3 = st.columns([4, 4, 0.5], vertical_alignment="center")
 with col3:
     with stylable_container(
         "blue_button_no_hover",  # It's good practice to give a unique key
@@ -302,8 +302,10 @@ if st.session_state.airshed_confirmed:
             # --- Map Creation ---
             bounds = st.session_state.bounds
             map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
-            m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
-            add_tile_layers(m_grid) # Your function to add tile layers
+
+            import plotly.express as px
+            # m_grid = folium.Map(location=map_center, zoom_start=8, tiles=None)
+            # add_tile_layers(m_grid) # Your function to add tile layers
 
             # --- 1. PREPARE DATA FOR THE HEATMAP ---
             # The HeatMap plugin needs a list of points in the format: [latitude, longitude, weight]
@@ -311,23 +313,13 @@ if st.session_state.airshed_confirmed:
             # First, get the center coordinates (latitude and longitude) for each grid cell
             map_gdf['lon'] = map_gdf.geometry.centroid.x
             map_gdf['lat'] = map_gdf.geometry.centroid.y
-            
-            # Create the list of lists from your DataFrame
-            heat_data = map_gdf[['lat', 'lon', 'population']].values.tolist()
 
-            # --- 2. CREATE AND ADD THE HEATMAP LAYER ---
-            from folium.plugins import HeatMap
+            fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', radius=10,
+                                    center=dict(lat=0, lon=180), zoom=0,
+                                    map_style="open-street-map")
+            fig.show()
 
-            HeatMap(
-                data=heat_data,
-                name="Population Heatmap",
-                min_opacity=0.2,
-                radius=15,
-                blur=10,
-                show=True
-            ).add_to(m_grid)
-
-            pop_map = st_folium(m_grid, use_container_width=True)
+            # pop_map = st_folium(m_grid, use_container_width=True)
 
         with tab2:
             st.subheader("Population Count Distribution")
