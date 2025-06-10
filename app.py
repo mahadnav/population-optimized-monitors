@@ -188,7 +188,7 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
             border-color: white;
         }
         """):
-            button2 = st.button("Confirm Airshed", key="airshed")
+            button2 = st.button("Confirm Airshed", key="airshed", use_container_width=True)
             if button2:
                 st.session_state.boundary = st.session_state.last_drawn_boundary
                 st.session_state.airshed_confirmed = True
@@ -238,7 +238,7 @@ if st.session_state.airshed_confirmed:
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            if st.button("Calculate Population Density", type="primary"):
+            if st.button("Calculate Population Density", type="primary", use_container_width=True):
                 gdf = st.session_state.grid_gdf
                 # Use the cached file's bytes for the analysis
                 raster_bytes = st.session_state.cached_raster['bytes']
@@ -414,7 +414,7 @@ if st.session_state.airshed_confirmed:
 
         col1, col2, col3 = st.columns([2.5, 1.5, 2])
         with col2:
-            if st.button("Optimize Monitoring Network", type="primary"):
+            if st.button("Optimize Monitoring Network", type="primary", use_container_width=True):
                 with st.spinner("Optimizing monitor locations..."):
                     vals = density_df[['population', 'long', 'lat', 'Density']].copy()
                     low = vals[vals['Density'] == 'Low']
