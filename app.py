@@ -321,7 +321,7 @@ if st.session_state.airshed_confirmed:
 
 
             fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', 
-                                 radius=8,
+                                 radius=12,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
                                 map_style="carto-positron",
                                 color_continuous_scale=px.colors.sequential.Plasma,
