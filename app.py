@@ -348,7 +348,7 @@ if st.session_state.airshed_confirmed:
 
         with tab3:
             st.subheader("Download Processed Population Data")
-            csv = gdf.to_csv(index=False).encode('utf-8')
+            csv = map_gdf.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
 
         def calculate_mean_population_per_cluster(data, num_monitors):
