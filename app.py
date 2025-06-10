@@ -315,7 +315,7 @@ if st.session_state.airshed_confirmed:
             with col1:
                 st.metric("Total Population in Airshed", f"{gdf['population'].sum():,}")
             with col2:
-                st.metric("Airshed size", f"{map_gdf['row_index'].max() + 1} x {map_gdf['col_index'].max() + 1}", "km")
+                st.metric("Airshed size (km x km)", f"{map_gdf['row_index'].max() + 1} x {map_gdf['col_index'].max() + 1}")
 
 
 
