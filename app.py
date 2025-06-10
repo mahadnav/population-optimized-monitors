@@ -402,11 +402,11 @@ if st.session_state.airshed_confirmed:
         col1, col2, _ = st.columns(3)
         with col1:
             mean_pop_low = calculate_mean_population_per_cluster(low, low_monitors)
-            st.metric(label="Mean Population in Low Density Areas", value=mean_pop_low)
+            st.metric(label="Mean Population Coverage in Low Density Clusters", value=mean_pop_low)
 
         with col2:
             mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
-            st.metric(label="Mean Population in High Density Areas", value=mean_pop_high)
+            st.metric(label="Mean Population Coverage in High Density Clusters", value=mean_pop_high)
         st.markdown("---")
 
         col1, col2, col3 = st.columns([2, 1.5, 2])
