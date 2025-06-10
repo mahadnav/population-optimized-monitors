@@ -296,7 +296,7 @@ if st.session_state.airshed_confirmed:
         with tab1:
             st.subheader("Population Density Heatmap")
 
-            st.metric("Total Population in Airshed", f"{gdf['population'].sum():,}")
+            st.write("Total Population in Airshed", f"{gdf['population'].sum():,}")
 
             map_gdf = gdf.copy()
             map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
