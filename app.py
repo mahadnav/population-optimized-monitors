@@ -373,6 +373,7 @@ if st.session_state.airshed_confirmed:
                 
                 # 3. Calculate the mean population for each cluster group
                 mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].mean()
+                st.table(mean_population_by_cluster.reset_index().rename(columns={'population': 'Mean Population'}))
                 
                 # 4. Calculate the average of those means
                 overall_mean = mean_population_by_cluster.mean()
