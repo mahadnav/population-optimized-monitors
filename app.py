@@ -372,8 +372,7 @@ if st.session_state.airshed_confirmed:
                 data_with_clusters, _, _, _ = weighted_kmeans(data.copy(), initial_centers, num_monitors)
                 
                 # 3. Calculate the mean population for each cluster group
-                mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].mean()
-                st.write(mean_population_by_cluster)
+                mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].sum()
                 
                 # 4. Calculate the average of those means
                 overall_mean = mean_population_by_cluster.mean()
