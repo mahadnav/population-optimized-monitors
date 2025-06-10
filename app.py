@@ -459,7 +459,7 @@ if st.session_state.airshed_confirmed:
             if deployed is not None and not deployed.empty:
                 for index, row in deployed.iterrows():
                     folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
-            monitor_map = st_folium(m_final, use_container_width=True, height=900)
+            monitor_map = st_folium(m_final, use_container_width=True, height=1050)
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
