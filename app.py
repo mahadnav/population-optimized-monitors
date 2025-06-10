@@ -297,6 +297,7 @@ if st.session_state.airshed_confirmed:
             st.subheader("Population Density Heatmap")
 
             map_gdf = gdf.copy()
+            st.dataframe(map_gdf.head(10), use_container_width=True)
             map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
 
             # --- Map Creation ---
