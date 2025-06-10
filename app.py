@@ -401,6 +401,7 @@ if st.session_state.airshed_confirmed:
 
         col1, col2, col3 = st.columns([2.5, 1.5, 2])
         with col2:
+            st.markdown("---", unsafe_allow_html=True)
             if st.button("Optimize Monitoring Network", type="primary"):
                 with st.spinner("Optimizing monitor locations..."):
                     vals = density_df[['population', 'long', 'lat', 'Density']].copy()
