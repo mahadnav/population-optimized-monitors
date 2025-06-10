@@ -97,7 +97,6 @@ def randomize_initial_cluster(data, k):
         centers.append({"coords": np.array([data.at[i, 'long'], data.at[i, 'lat']])})
     return centers
 
-
 def plot_clusters(data, k):
     vals = data[['population', 'long', 'lat']].copy()
     sampled = vals.sample(int(0.7 * len(data)))
