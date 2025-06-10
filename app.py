@@ -323,7 +323,7 @@ if st.session_state.airshed_confirmed:
             fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', 
                                  radius=10,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
-                                map_style="open-street-map",
+                                map_style="CartoDB positron",
                                 color_continuous_scale=px.colors.sequential.Plasma,
                                 height=1000,
                                 opacity=0.7
