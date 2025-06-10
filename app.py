@@ -399,7 +399,7 @@ if st.session_state.airshed_confirmed:
             mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
             st.metric(label="Mean Population Coverage in High Density Clusters", value=mean_pop_high)
 
-        col1, col2, col3 = st.columns([2, 1.5, 2])
+        col1, col2, col3 = st.columns([3, 1.5, 2])
         with col2:
             if st.button("Optimize Monitoring Network", type="primary"):
                 with st.spinner("Optimizing monitor locations..."):
