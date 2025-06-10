@@ -393,8 +393,8 @@ if st.session_state.airshed_confirmed:
         
         with tab1:
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
-            m_final = folium.Map(location=map_center, zoom_start=10, tiles="CartoDB positron", width=1700, height=700)
-            # add_tile_layers(m_final)
+            m_final = folium.Map(location=map_center, zoom_start=10, tiles=None)
+            add_tile_layers(m_final)
             folium.GeoJson(
                     st.session_state.boundary,
                     style_function=lambda x: {
@@ -407,7 +407,7 @@ if st.session_state.airshed_confirmed:
             for index, row in final_df.iterrows():
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
-            st_folium(m_final, use_container_width=True, height=700)
+            monitor_map = st_folium(m_final, use_container_width=True, height=700)
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
