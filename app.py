@@ -407,6 +407,10 @@ if st.session_state.airshed_confirmed:
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
             add_tile_layers(m_final)
+            deployed = pd.read_csv("deployed_monitors.csv") if os.path.exists("deployed_monitors.csv") else None
+            if deployed is not None and not deployed.empty:
+                for index, row in deployed.iterrows():
+                    folium.Marker(location=[row['lat'], row['lon']], icon=folium.Icon(color='green')).add_to(m_final)
             monitor_map = st_folium(m_final, use_container_width=True, height=900)
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
