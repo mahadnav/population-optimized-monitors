@@ -311,7 +311,7 @@ if st.session_state.airshed_confirmed:
             map_gdf['col_index'] = ((map_gdf['lon'] - bounds['min_lon']) / 0.01).astype(int) - 1
             map_gdf['row_index'] = ((map_gdf['lat'] - bounds['min_lat']) / 0.01).astype(int)
 
-            col1, col2 = st.columns([3, 3])
+            col1, col2, _ = st.columns(3)
             with col1:
                 st.metric("Total Population in Airshed", f"{gdf['population'].sum():,}")
             with col2:
