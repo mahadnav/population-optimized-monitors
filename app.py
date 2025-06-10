@@ -353,27 +353,33 @@ if st.session_state.airshed_confirmed:
 
         def calculate_mean_population_per_cluster(data, num_monitors):
             """
-            Calculates the mean population for each cluster and then the average of those means.
+            Calls the user's weighted_kmeans function and computes the mean
+            population from its output.
             """
             if data.empty or num_monitors <= 0:
                 return "N/A"
+
+            if num_monitors > len(data):
+                st.info(f"Monitor count is capped at the number of available data points ({len(data)}).")
+                num_monitors = len(data)
             
             try:
-                # We assume weighted_kmeans returns cluster labels as the first element
-                labels, _, _, _ = weighted_kmeans(data, randomize_initial_cluster(data, num_monitors), num_monitors)
+                # 1. Generate initial cluster centers
+                initial_centers = randomize_initial_cluster(data, num_monitors)
                 
-                data_with_clusters = data.copy()
-                data_with_clusters['cluster'] = labels
+                # 2. Call your k-means function. It returns the DataFrame with a 'cluster' column.
+                #    We pass data.copy() to avoid modifying the original dataframe in-place.
+                data_with_clusters, _, _, _ = weighted_kmeans(data.copy(), initial_centers, num_monitors)
                 
-                # Calculate the mean population for each cluster
+                # 3. Calculate the mean population for each cluster group
                 mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].mean()
                 
-                # Return the average of the mean populations of all clusters
+                # 4. Calculate the average of those means
                 overall_mean = mean_population_by_cluster.mean()
+
                 return f"{int(overall_mean):,}"
             except Exception as e:
-                # This can happen if, for example, num_monitors is greater than the number of data points
-                st.error(f"Could not calculate mean population. Error: {e}")
+                st.error(f"Calculation Error: {e}")
                 return "Error"
         
         # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
