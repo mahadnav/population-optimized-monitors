@@ -296,8 +296,6 @@ if st.session_state.airshed_confirmed:
         with tab1:
             st.subheader("Population Density Heatmap")
 
-            st.metric("Total Population in Airshed", f"{gdf['population'].sum():,}")
-
             map_gdf = gdf.copy()
             map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
 
@@ -312,6 +310,13 @@ if st.session_state.airshed_confirmed:
             # Calculate the row and column index
             map_gdf['col_index'] = ((map_gdf['lon'] - bounds['min_lon']) / 0.01).astype(int) - 1
             map_gdf['row_index'] = ((map_gdf['lat'] - bounds['min_lat']) / 0.01).astype(int)
+
+            col1, col2 = st.columns([3, 3])
+            with col1:
+                st.metric("Total Population in Airshed", f"{gdf['population'].sum():,}")
+            with col2:
+                st.metric("Airshed size", f"{map_gdf['row_index'].max() + 1} x {map_gdf['col_index'].max() + 1}", "km")
+
 
 
 
