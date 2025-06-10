@@ -350,6 +350,31 @@ if st.session_state.airshed_confirmed:
             st.subheader("Download Processed Population Data")
             csv = gdf.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
+
+        def calculate_mean_population_per_cluster(data, num_monitors):
+            """
+            Calculates the mean population for each cluster and then the average of those means.
+            """
+            if data.empty or num_monitors <= 0:
+                return "N/A"
+            
+            try:
+                # We assume weighted_kmeans returns cluster labels as the first element
+                labels, _, _, _ = weighted_kmeans(data, randomize_initial_cluster(data, num_monitors), num_monitors)
+                
+                data_with_clusters = data.copy()
+                data_with_clusters['cluster'] = labels
+                
+                # Calculate the mean population for each cluster
+                mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].mean()
+                
+                # Return the average of the mean populations of all clusters
+                overall_mean = mean_population_by_cluster.mean()
+                return f"{int(overall_mean):,}"
+            except Exception as e:
+                # This can happen if, for example, num_monitors is greater than the number of data points
+                st.error(f"Could not calculate mean population. Error: {e}")
+                return "Error"
         
         # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
         st.markdown("#### Configure and Run Monitor Optimization")
@@ -363,6 +388,20 @@ if st.session_state.airshed_confirmed:
             high_monitors = st.number_input("Monitors for High Density", min_value=1, value=10)
         with col3:
             min_dist = st.number_input("Min Distance Between Monitors (km)", min_value=1, value=2)
+
+        vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+        low = vals[vals['Density'] == 'Low']
+        high = vals[vals['Density'] == 'High']
+
+        col1, col2 = st.columns(2)
+        with col1:
+            mean_pop_low = calculate_mean_population_per_cluster(low, low_monitors)
+            st.metric(label="Mean Population in Low Density Areas", value=mean_pop_low)
+
+        with col2:
+            mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
+            st.metric(label="Mean Population in High Density Areas", value=mean_pop_high)
+        st.markdown("---")
 
         col1, col2, col3 = st.columns([2, 1.5, 2])
         with col2:
