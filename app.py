@@ -308,7 +308,7 @@ if st.session_state.airshed_confirmed:
             map_gdf['lat'] = map_gdf.geometry.centroid.y
 
             # Calculate the row and column index
-            map_gdf['col_index'] = ((map_gdf['lon'] - bounds['min_lon']) / 0.01).astype(int)
+            map_gdf['col_index'] = ((map_gdf['lon'] - bounds['min_lon']) / 0.01).astype(int) - 1
             map_gdf['row_index'] = ((map_gdf['lat'] - bounds['min_lat']) / 0.01).astype(int)
 
 
