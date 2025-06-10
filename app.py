@@ -324,7 +324,7 @@ if st.session_state.airshed_confirmed:
                                  radius=12,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
                                 map_style="carto-positron",
-                                color_continuous_scale=px.colors.sequential.Plasma,
+                                color_continuous_scale=px.colors.sequential.Turbo,
                                 height=1000,
                                 opacity=0.7
                                 )
