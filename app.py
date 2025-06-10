@@ -364,26 +364,17 @@ if st.session_state.airshed_confirmed:
                 num_monitors = len(data)
             
             try:
-                # 1. Generate initial cluster centers
                 initial_centers = randomize_initial_cluster(data, num_monitors)
-                
-                # 2. Call your k-means function. It returns the DataFrame with a 'cluster' column.
-                #    We pass data.copy() to avoid modifying the original dataframe in-place.
                 data_with_clusters, _, _, _ = weighted_kmeans(data.copy(), initial_centers, num_monitors)
-                
-                # 3. Calculate the mean population for each cluster group
                 mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].sum()
-                
-                # 4. Calculate the average of those means
                 overall_mean = mean_population_by_cluster.mean()
-
                 return f"{int(overall_mean):,}"
             except Exception as e:
                 st.error(f"Calculation Error: {e}")
                 return "Error"
         
         # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
-        st.markdown("#### Configure and Run Monitor Optimization")
+        st.markdown("#### Configure Monitoring Network Optimization")
         density_df['long'] = density_df.geometry.centroid.x
         density_df['lat'] = density_df.geometry.centroid.y
         
@@ -407,7 +398,6 @@ if st.session_state.airshed_confirmed:
         with col2:
             mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
             st.metric(label="Mean Population Coverage in High Density Clusters", value=mean_pop_high)
-        st.markdown("---")
 
         col1, col2, col3 = st.columns([2, 1.5, 2])
         with col2:
@@ -432,7 +422,7 @@ if st.session_state.airshed_confirmed:
 
     # --- STEP 6: REVIEW FINAL RESULTS ---
     if st.session_state.monitor_data is not None:
-        st.markdown("#### Review Final Optimized Monitor Locations")
+        st.markdown("#### Optimized Monitor Locations")
         final_df = st.session_state.monitor_data
         tab1, tab2 = st.tabs(["Optimized Monitors Map", "Download Data"])
         
