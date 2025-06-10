@@ -407,7 +407,7 @@ if st.session_state.airshed_confirmed:
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
             add_tile_layers(m_final)
-            monitor_map = st_folium(m_final, use_container_width=True, height=700)
+            monitor_map = st_folium(m_final, use_container_width=True, height=900)
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
