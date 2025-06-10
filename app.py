@@ -307,6 +307,10 @@ if st.session_state.airshed_confirmed:
             map_gdf['lon'] = map_gdf.geometry.centroid.x
             map_gdf['lat'] = map_gdf.geometry.centroid.y
 
+            ## Adding row and col_id
+            map_gdf['row_id'] = np.arange(len(map_gdf)) // 10
+            map_gdf['col_id'] = np.arange(len(map_gdf)) % 10
+
             fig = px.density_map(map_gdf, lat='lat', lon='lon', z='population', 
                                  radius=10,
                                 center=dict(lat=map_center[0], lon=map_center[1]), zoom=6,
