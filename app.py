@@ -399,7 +399,7 @@ if st.session_state.airshed_confirmed:
         low = vals[vals['Density'] == 'Low']
         high = vals[vals['Density'] == 'High']
 
-        col1, col2 = st.columns(2)
+        col1, col2, _ = st.columns(3)
         with col1:
             mean_pop_low = calculate_mean_population_per_cluster(low, low_monitors)
             st.metric(label="Mean Population in Low Density Areas", value=mean_pop_low)
