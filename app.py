@@ -523,7 +523,7 @@ if st.session_state.airshed_confirmed:
             # --- Add LayerControl AT THE VERY END ---
             folium.LayerControl().add_to(m_final)
             
-            st_folium(m_final, use_container_width=True, height=1050)
+            final_map = st_folium(m_final, use_container_width=True, height=1050)
 
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
