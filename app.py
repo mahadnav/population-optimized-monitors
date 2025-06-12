@@ -443,21 +443,22 @@ if st.session_state.airshed_confirmed:
         with tab1:
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
             m_final = folium.Map(location=map_center, zoom_start=10, tiles=None)
+
+            # Add base tile layers
+            add_tile_layers(m_final)
+
+            # Add airshed boundary (as a non-toggleable base layer)
             folium.GeoJson(
-                    st.session_state.boundary,
-                    style_function=lambda x: {
-                        'color': 'black',         # The color of the outline
-                        'weight': 2,             # The thickness of the outline
-                        'fillOpacity': 0.0,      # No fill (makes it transparent inside)
-                    },
-                    name='Airshed Boundary'
-                ).add_to(m_final)
-            
-            # **NEW: Add Cluster Layer**
-            if not st.session_state.get('clusters_generated'):
+                st.session_state.boundary,
+                style_function=lambda x: {'color': 'black', 'weight': 2, 'fillOpacity': 0.0},
+                name='Airshed Boundary'
+            ).add_to(m_final)
+
+            # --- REFINED AND WORKING CLUSTER LAYER ---
+            if st.session_state.get('clusters_generated', False):
                 # Make a clean copy of the geodataframe to avoid errors
                 clustered_gdf = st.session_state.density_df.copy().dropna(subset=['cluster', 'geometry'])
-                st.write(f"Clustered DataFrame contains {len(clustered_gdf)} rows.")
+
                 if not clustered_gdf.empty:
                     # This group will appear in the LayerControl
                     cluster_fg = folium.FeatureGroup(name='Show Clusters', show=False) # Start with layer OFF
@@ -505,13 +506,25 @@ if st.session_state.airshed_confirmed:
                     popup=f"Proposed Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}"
                 ).add_to(proposed_fg)
             proposed_fg.add_to(m_final)
-            add_tile_layers(m_final)
 
-            # deployed = pd.read_csv("deployed_monitors.csv") if os.path.exists("deployed_monitors.csv") else None
-            # if deployed is not None and not deployed.empty:
-            #     for index, row in deployed.iterrows():
-            #         folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
-            monitor_map = st_folium(m_final, use_container_width=True, height=1000)
+            # --- Add Deployed Monitors as a toggleable layer ---
+            if os.path.exists("deployed_monitors.csv"):
+                deployed = pd.read_csv("deployed_monitors.csv")
+                if not deployed.empty:
+                    deployed_fg = folium.FeatureGroup(name="Existing Monitors", show=True)
+                    for index, row in deployed.iterrows():
+                        folium.Marker(
+                            location=[row['latitude'], row['longitude']],
+                            icon=folium.Icon(color='green', icon='cloud'),
+                            popup=f"Existing Monitor<br>Lat: {row['latitude']:.4f}, Lon: {row['longitude']:.4f}"
+                        ).add_to(deployed_fg)
+                    deployed_fg.add_to(m_final)
+            
+            # --- Add LayerControl AT THE VERY END ---
+            folium.LayerControl().add_to(m_final)
+            
+            st_folium(m_final, use_container_width=True, height=1050)
+
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
