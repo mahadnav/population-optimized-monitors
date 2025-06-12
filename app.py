@@ -454,7 +454,7 @@ if st.session_state.airshed_confirmed:
                 ).add_to(m_final)
             
             # **NEW: Add Cluster Layer**
-            if st.session_state.get('clusters_generated', False):
+            if st.session_state.get('clusters_generated'):
                 # Make a clean copy of the geodataframe to avoid errors
                 clustered_gdf = st.session_state.density_df.copy().dropna(subset=['cluster', 'geometry'])
                 st.write(f"Clustered DataFrame contains {len(clustered_gdf)} rows.")
