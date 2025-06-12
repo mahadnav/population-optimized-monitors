@@ -457,6 +457,7 @@ if st.session_state.airshed_confirmed:
             if st.session_state.get('clusters_generated', False):
                 # Make a clean copy of the geodataframe to avoid errors
                 clustered_gdf = st.session_state.density_df.copy().dropna(subset=['cluster', 'geometry'])
+                st.dataframe(clustered_gdf)
 
                 if not clustered_gdf.empty:
                     # This group will appear in the LayerControl
