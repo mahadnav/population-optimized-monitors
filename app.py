@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import Draw, FeatureGroup
+from folium.plugins import Draw
 from streamlit_folium import st_folium # type: ignore
 
 from shapely.geometry import box
@@ -455,7 +455,7 @@ if st.session_state.airshed_confirmed:
             
             # **NEW: Add Cluster Layer**
             if st.session_state.get('clusters_generated', False):
-                cluster_fg = FeatureGroup(name='Show Clusters', show=True)
+                cluster_fg = folium.FeatureGroup(name='Show Clusters', show=True)
                 clustered_gdf = st.session_state.density_df.dropna(subset=['cluster', 'geometry'])
                 
                 num_clusters = int(clustered_gdf['cluster'].max()) + 1
