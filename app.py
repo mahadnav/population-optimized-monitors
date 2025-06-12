@@ -44,7 +44,6 @@ def init_session_state():
         "last_drawn_boundary": None,
         "airshed_confirmed": False,
         "population_computed": False,
-        "clusters_generated": False,
         "bounds": None,
         "cached_raster": None
     }
@@ -61,7 +60,6 @@ def reset_analysis():
     st.session_state.last_drawn_boundary = None # Also reset the last drawing
     st.session_state.airshed_confirmed = False
     st.session_state.population_computed = False
-    st.session_state.clusters_generated = False
     st.session_state.bounds = None
 
 def add_tile_layers(folium_map):
@@ -416,133 +414,51 @@ if st.session_state.airshed_confirmed:
         col1, col2, col3 = st.columns([2.5, 1.5, 2])
         with col2:
             if st.button("Optimize Monitoring Network", type="primary", use_container_width=True):
-                with st.spinner("Optimizing monitor locations and identifying clusters..."):
-                    # Ensure the DataFrame for clustering exists
-                    if st.session_state.density_df is not None:
-                        df_for_clustering = st.session_state.density_df.copy()
-                        df_for_clustering['cluster'] = np.nan # Initialize cluster column
-                        
-                        # Separate by density and get original indices
-                        low = df_for_clustering[df_for_clustering['Density'] == 'Low']
-                        high = df_for_clustering[df_for_clustering['Density'] == 'High']
-                        low_indices, high_indices = low.index, high.index
+                with st.spinner("Optimizing monitor locations..."):
+                    vals = density_df[['population', 'long', 'lat', 'Density']].copy()
+                    low = vals[vals['Density'] == 'Low']
+                    high = vals[vals['Density'] == 'High']
+                    
+                    low_df, high_df = pd.DataFrame(), pd.DataFrame()
+                    if not low.empty and low_monitors > 0:
+                        _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+                        low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
+                    if not high.empty and high_monitors > 0:
+                        _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
+                        high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
-                        low_df_centers, high_df_centers = pd.DataFrame(), pd.DataFrame()
+                    raw_df = pd.concat([low_df, high_df], ignore_index=True)
+                    st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
+                    st.success("✅ Optimization complete!")
+                    time.sleep(2)
 
-                        # Process low density areas
-                        if not low.empty and low_monitors > 0 and low_monitors <= len(low):
-                            low_clustered, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
-                            df_for_clustering.loc[low_indices, 'cluster'] = low_clustered['cluster']
-                            low_df_centers = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
-
-                        # Process high density areas
-                        if not high.empty and high_monitors > 0 and high_monitors <= len(high):
-                            high_clustered, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
-                            high_clustered['cluster'] += (low_monitors if not low.empty and low_monitors > 0 else 0)
-                            df_for_clustering.loc[high_indices, 'cluster'] = high_clustered['cluster']
-                            high_df_centers = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
-
-                        # Store all results in session state
-                        st.session_state.density_df = df_for_clustering
-                        st.session_state.clusters_generated = True
-
-                        raw_df = pd.concat([low_df_centers, high_df_centers], ignore_index=True)
-                        st.session_state.monitor_data = merge_close_centroids(raw_df, threshold=min_dist)
-                        
-                        st.success("✅ Optimization complete!")
-
-    # --- STEP 6: REVIEW FINAL RESULTS (DEBUGGING VERSION) ---
-    if st.session_state.monitor_data is not None and not st.session_state.monitor_data.empty:
+    # --- STEP 6: REVIEW FINAL RESULTS ---
+    if st.session_state.monitor_data is not None:
         st.markdown("#### Optimized Monitor Locations")
         final_df = st.session_state.monitor_data
         tab1, tab2 = st.tabs(["Optimized Monitors Map", "Download Data"])
         
         with tab1:
-            # Define map center and create the initial map object
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
             m_final = folium.Map(location=map_center, zoom_start=10, tiles=None)
-
-            # Add base tile layers
-            add_tile_layers(m_final)
-
-            # Add airshed boundary (as a non-toggleable base layer)
             folium.GeoJson(
-                st.session_state.boundary,
-                style_function=lambda x: {'color': 'black', 'weight': 2, 'fillOpacity': 0.0},
-                name='Airshed Boundary'
-            ).add_to(m_final)
-
-            # Add Cluster Layer
-            if st.session_state.get('clusters_generated', False):
-                # Make a clean copy of the geodataframe to avoid errors
-                clustered_gdf = st.session_state.density_df.copy().dropna(subset=['cluster', 'geometry'])
-
-                if not clustered_gdf.empty:
-                    # This group will appear in the LayerControl
-                    cluster_fg = folium.FeatureGroup(name='Show Clusters', show=False) # Start with layer OFF
-
-                    # --- Create a color map for the clusters ---
-                    try:
-                        clustered_gdf['cluster'] = clustered_gdf['cluster'].astype(int)
-                        num_clusters = clustered_gdf['cluster'].max() + 1
-                        colormap = cm.get_cmap('viridis', num_clusters)
-                        cluster_colors = {i: colors.to_hex(colormap(i)) for i in range(num_clusters)}
-                    except Exception:
-                        cluster_colors = {} # Fallback
-
-                    # Create a single GeoJson object for all polygons (much faster)
-                    gjson = folium.GeoJson(
-                        data=clustered_gdf,
-                        style_function=lambda feature: {
-                            'fillColor': cluster_colors.get(feature['properties']['cluster'], '#808080'),
-                            'color': 'black',
-                            'weight': 0.1,
-                            'fillOpacity': 0.6
-                        },
-                        tooltip=folium.GeoJsonTooltip(
-                            fields=['cluster', 'population'],
-                            aliases=['Cluster ID:', 'Population:'],
-                            localize=True,
-                            style="background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;"
-                        ),
-                        name='Cluster Polygons'
-                    )
-                    
-                    # Add the fast GeoJson layer to the FeatureGroup, then to the map
-                    gjson.add_to(cluster_fg)
-                    cluster_fg.add_to(m_final)
-
-            # Add Proposed Monitors as a toggleable layer
-            proposed_fg = folium.FeatureGroup(name="Proposed Monitors", show=True)
+                    st.session_state.boundary,
+                    style_function=lambda x: {
+                        'color': 'black',         # The color of the outline
+                        'weight': 2,             # The thickness of the outline
+                        'fillOpacity': 0.0,      # No fill (makes it transparent inside)
+                    },
+                    name='Airshed Boundary'
+                ).add_to(m_final)
             for index, row in final_df.iterrows():
-                folium.CircleMarker(
-                    location=[row['lat'], row['lon']],
-                    radius=8,
-                    color='#e63946',
-                    fill=True,
-                    fill_color='#e63946',
-                    popup=f"Proposed Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}"
-                ).add_to(proposed_fg)
-            proposed_fg.add_to(m_final)
-
-            # Add Deployed Monitors as a toggleable layer
-            if os.path.exists("deployed_monitors.csv"):
-                deployed = pd.read_csv("deployed_monitors.csv")
-                if not deployed.empty:
-                    deployed_fg = folium.FeatureGroup(name="Existing Monitors", show=True)
-                    for index, row in deployed.iterrows():
-                        folium.Marker(
-                            location=[row['latitude'], row['longitude']],
-                            icon=folium.Icon(color='green', icon='cloud'),
-                            popup=f"Existing Monitor<br>Lat: {row['latitude']:.4f}, Lon: {row['longitude']:.4f}"
-                        ).add_to(deployed_fg)
-                    deployed_fg.add_to(m_final)
-            
-            # Add LayerControl AT THE VERY END
-            folium.LayerControl().add_to(m_final)
-            
-            st_folium(m_final, use_container_width=True, height=1050)
-
+                folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
+                                    popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
+            add_tile_layers(m_final)
+            deployed = pd.read_csv("deployed_monitors.csv") if os.path.exists("deployed_monitors.csv") else None
+            if deployed is not None and not deployed.empty:
+                for index, row in deployed.iterrows():
+                    folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
+            monitor_map = st_folium(m_final, use_container_width=True, height=1050)
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
