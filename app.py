@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import Draw
+from folium.plugins import Draw, FeatureGroup
 from streamlit_folium import st_folium # type: ignore
 
 from shapely.geometry import box
@@ -35,7 +35,6 @@ with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
 # --- Session State Initialization ---
-# Ensures variables persist across reruns and are properly initialized
 def init_session_state():
     defaults = {
         "boundary": None,
@@ -45,6 +44,7 @@ def init_session_state():
         "last_drawn_boundary": None,
         "airshed_confirmed": False,
         "population_computed": False,
+        "clusters_generated": False,
         "bounds": None,
         "cached_raster": None
     }
@@ -61,6 +61,7 @@ def reset_analysis():
     st.session_state.last_drawn_boundary = None # Also reset the last drawing
     st.session_state.airshed_confirmed = False
     st.session_state.population_computed = False
+    st.session_state.clusters_generated = False
     st.session_state.bounds = None
 
 def add_tile_layers(folium_map):
@@ -451,6 +452,31 @@ if st.session_state.airshed_confirmed:
                     },
                     name='Airshed Boundary'
                 ).add_to(m_final)
+            
+            # **NEW: Add Cluster Layer**
+            if st.session_state.get('clusters_generated', False):
+                cluster_fg = FeatureGroup(name='Show Clusters', show=True)
+                clustered_gdf = st.session_state.density_df.dropna(subset=['cluster', 'geometry'])
+                
+                num_clusters = int(clustered_gdf['cluster'].max()) + 1
+                colormap = cm.get_cmap('viridis', num_clusters)
+                cluster_colors = {i: colors.to_hex(colormap(i)) for i in range(num_clusters)}
+
+                for _, row in clustered_gdf.iterrows():
+                    geo_j = folium.GeoJson(
+                        data=row['geometry'].__geo_interface__,
+                        style_function=lambda x, cid=int(row['cluster']): {
+                            'fillColor': cluster_colors.get(cid, '#808080'),
+                            'color': 'black',
+                            'weight': 0.1,
+                            'fillOpacity': 0.6
+                        }
+                    )
+                    geo_j.add_child(folium.Popup(f"Cluster: {int(row['cluster'])}<br>Population: {row['population']:,}"))
+                    cluster_fg.add_to(geo_j)
+                    geo_j.add_to(m_final)
+                cluster_fg.add_to(m_final)
+
             for index, row in final_df.iterrows():
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
