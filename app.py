@@ -455,44 +455,58 @@ if st.session_state.airshed_confirmed:
             
             # **NEW: Add Cluster Layer**
             if st.session_state.get('clusters_generated', False):
-                # Create a FeatureGroup. This acts as a single layer for the LayerControl.
-                cluster_fg = folium.FeatureGroup(name='Show Clusters', show=True)
-                
-                # Get the dataframe with cluster assignments and geometry
-                clustered_gdf = st.session_state.density_df.dropna(subset=['cluster', 'geometry'])
-                
-                # Create a color map for the clusters, checking if data exists
+                # Make a clean copy of the geodataframe to avoid errors
+                clustered_gdf = st.session_state.density_df.copy().dropna(subset=['cluster', 'geometry'])
+
                 if not clustered_gdf.empty:
-                    num_clusters = int(clustered_gdf['cluster'].max()) + 1
-                    colormap = cm.get_cmap('viridis', num_clusters)
-                    cluster_colors = {i: colors.to_hex(colormap(i)) for i in range(num_clusters)}
+                    # This group will appear in the LayerControl
+                    cluster_fg = folium.FeatureGroup(name='Show Clusters', show=False) # Start with layer OFF
 
-                    # Iterate through data and add each cell's polygon to the FeatureGroup
-                    for _, row in clustered_gdf.iterrows():
-                        # Create the GeoJson object for the polygon
-                        geo_j = folium.GeoJson(
-                            data=row['geometry'].__geo_interface__,
-                            style_function=lambda x, cid=int(row['cluster']): {
-                                'fillColor': cluster_colors.get(cid, '#808080'), # Grey for errors
-                                'color': 'black',
-                                'weight': 0.1,
-                                'fillOpacity': 0.6
-                            }
-                        )
-                        # Add a popup
-                        geo_j.add_child(folium.Popup(f"Cluster: {int(row['cluster'])}<br>Population: {row['population']:,}"))
-                        
-                        # CORRECTED: Add the GeoJson object TO the FeatureGroup
-                        geo_j.add_to(cluster_fg)
+                    # --- Create a color map for the clusters ---
+                    try:
+                        clustered_gdf['cluster'] = clustered_gdf['cluster'].astype(int)
+                        num_clusters = clustered_gdf['cluster'].max() + 1
+                        colormap = cm.get_cmap('viridis', num_clusters)
+                        cluster_colors = {i: colors.to_hex(colormap(i)) for i in range(num_clusters)}
+                    except Exception:
+                        cluster_colors = {} # Fallback
 
-                    # Add the completed FeatureGroup (with all its polygons) to the map ONCE.
+                    # Create a single GeoJson object for all polygons (much faster)
+                    gjson = folium.GeoJson(
+                        data=clustered_gdf,
+                        style_function=lambda feature: {
+                            'fillColor': cluster_colors.get(feature['properties']['cluster'], '#808080'),
+                            'color': 'black',
+                            'weight': 0.1,
+                            'fillOpacity': 0.6
+                        },
+                        tooltip=folium.GeoJsonTooltip(
+                            fields=['cluster', 'population'],
+                            aliases=['Cluster ID:', 'Population:'],
+                            localize=True,
+                            style="background-color: white; color: #333333; font-family: arial; font-size: 12px; padding: 10px;"
+                        ),
+                        name='Cluster Polygons'
+                    )
+                    
+                    # Add the fast GeoJson layer to the FeatureGroup, then to the map
+                    gjson.add_to(cluster_fg)
                     cluster_fg.add_to(m_final)
 
+            # --- Add Proposed Monitors as a toggleable layer ---
+            proposed_fg = folium.FeatureGroup(name="Proposed Monitors", show=True)
             for index, row in final_df.iterrows():
-                folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
-                                    popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
-            add_tile_layers(m_final)
-            
+                folium.CircleMarker(
+                    location=[row['lat'], row['lon']],
+                    radius=8,
+                    color='#e63946',
+                    fill=True,
+                    fill_color='#e63946',
+                    popup=f"Proposed Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}"
+                ).add_to(proposed_fg)
+            proposed_fg.add_to(m_final)
+            # add_tile_layers(m_final)
+
             deployed = pd.read_csv("deployed_monitors.csv") if os.path.exists("deployed_monitors.csv") else None
             if deployed is not None and not deployed.empty:
                 for index, row in deployed.iterrows():
