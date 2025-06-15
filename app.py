@@ -14,12 +14,10 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.figure_factory as ff
 import plotly.express as px
 import branca.colormap as bcm
 from branca.element import Element
 
-import json
 import base64
 import os
 import time
@@ -258,11 +256,8 @@ if st.session_state.airshed_confirmed:
             bounds = st.session_state.bounds
             map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
 
-            import plotly.express as px
             map_gdf['lon'] = map_gdf.geometry.centroid.x
             map_gdf['lat'] = map_gdf.geometry.centroid.y
-
-            import math
             map_gdf['col_index'] = np.floor((map_gdf['lon'] - bounds['min_lon']) / 0.01).astype(int)
             map_gdf['row_index'] = np.floor((map_gdf['lat'] - bounds['min_lat']) / 0.01).astype(int)
 
@@ -376,6 +371,7 @@ if st.session_state.airshed_confirmed:
                     high = vals[vals['Density'] == 'High']
                     
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
+                    st.dataframe(low_df)
                     if not low.empty and low_monitors > 0:
                         _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
