@@ -314,11 +314,13 @@ if st.session_state.airshed_confirmed:
             csv = map_gdf.drop(columns=['geometry']).to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download Population Grid CSV", data=csv, file_name="zonal_population_stats.csv", mime="text/csv")
 
+        def apply_wkm(data, num_monitors):
+            initial_centers = randomize_initial_cluster(data, num_monitors)
+            data_with_clusters, centers, it_num, sse = weighted_kmeans(data.copy(), initial_centers, num_monitors)
+            return data_with_clusters, centers
+
+
         def calculate_mean_population_per_cluster(data, num_monitors):
-            """
-            Calls the user's weighted_kmeans function and computes the mean
-            population from its output.
-            """
             if data.empty or num_monitors <= 0:
                 return "N/A"
 
@@ -327,8 +329,7 @@ if st.session_state.airshed_confirmed:
                 num_monitors = len(data)
             
             try:
-                initial_centers = randomize_initial_cluster(data, num_monitors)
-                data_with_clusters, _, _, _ = weighted_kmeans(data.copy(), initial_centers, num_monitors)
+                data_with_clusters = apply_wkm(data)[0]
                 mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].sum()
                 overall_mean = mean_population_by_cluster.mean()
                 return f"{int(overall_mean):,}"
@@ -362,6 +363,7 @@ if st.session_state.airshed_confirmed:
             mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
             st.metric(label="Mean Population Coverage in High Density Clusters", value=mean_pop_high)
 
+
         col1, col2, col3 = st.columns([2.5, 1.5, 2])
         with col2:
             if st.button("Optimize Monitoring Network", type="primary", use_container_width=True):
@@ -372,11 +374,11 @@ if st.session_state.airshed_confirmed:
                     
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
                     if not low.empty and low_monitors > 0:
-                        _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
+                        _, centers_low, = apply_wkm(low, low_monitors)
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
                         st.dataframe(low_df)
                     if not high.empty and high_monitors > 0:
-                        _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
+                        _, centers_high = apply_wkm(low, high_monitors)
                         high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
                     raw_df = pd.concat([low_df, high_df], ignore_index=True)
@@ -402,15 +404,18 @@ if st.session_state.airshed_confirmed:
                     },
                     name='Airshed Boundary'
                 ).add_to(m_final)
+            
             for index, row in final_df.iterrows():
                 folium.CircleMarker(location=[row['lat'], row['lon']], radius=8, color='#e63946', fill=True, fill_color='#e63946',
                                     popup=f"Monitor #{index+1}<br>Lat: {row['lat']:.4f}, Lon: {row['lon']:.4f}").add_to(m_final)
             add_tile_layers(m_final)
+            
             deployed = pd.read_csv("deployed_monitors.csv") if os.path.exists("deployed_monitors.csv") else None
             if deployed is not None and not deployed.empty:
                 for index, row in deployed.iterrows():
                     folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
             monitor_map = st_folium(m_final, use_container_width=True, height=1050)
+        
         with tab2:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
