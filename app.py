@@ -324,9 +324,9 @@ if st.session_state.airshed_confirmed:
             if data.empty:
                 return "N/A"
 
-            if num_monitors > len(data):
-                st.info(f"Monitor count is capped at the number of available data points ({len(data)}).")
-                num_monitors = len(data)
+            # if num_monitors > len(data):
+            #     st.info(f"Monitor count is capped at the number of available data points ({len(data)}).")
+            #     num_monitors = len(data)
             
             try:
                 data_with_clusters = data
