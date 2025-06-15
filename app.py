@@ -24,8 +24,7 @@ import base64
 import os
 import time
 import tempfile
-from geopy.distance import geodesic
-from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans
+from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans, merge_close_centroids
 
 # --- Page Configuration ---
 st.set_page_config(page_title="Population-Centric Monitoring Network", layout="wide")
@@ -57,7 +56,7 @@ def reset_analysis():
     st.session_state.grid_gdf = None
     st.session_state.population_grid = None
     st.session_state.monitor_data = None
-    st.session_state.last_drawn_boundary = None # Also reset the last drawing
+    st.session_state.last_drawn_boundary = None 
     st.session_state.airshed_confirmed = False
     st.session_state.population_computed = False
     st.session_state.bounds = None
@@ -70,41 +69,6 @@ def add_tile_layers(folium_map):
     folium.LayerControl().add_to(folium_map)
 
 init_session_state()
-
-# --- Helper Functions ---
-def calculate_distance(coord1, coord2):
-    return geodesic(coord1, coord2).kilometers
-
-def merge_close_centroids(centroids, threshold=2):
-    # This recursive function correctly merges centroids that are close to each other
-    if centroids.empty:
-        return centroids
-    merged_centroids = []
-    used = set()
-    for i, row1 in centroids.iterrows():
-        if i in used: continue
-        close_centroids = [row1]
-        for j, row2 in centroids.iterrows():
-            if i != j and j not in used:
-                distance = calculate_distance((row1['lat'], row1['lon']), (row2['lat'], row2['lon']))
-                if distance < threshold:
-                    close_centroids.append(row2)
-                    used.add(j)
-        if len(close_centroids) > 1:
-            mean_lat = np.mean([c['lat'] for c in close_centroids])
-            mean_long = np.mean([c['lon'] for c in close_centroids])
-            merged_centroids.append({'lat': mean_lat, 'lon': mean_long})
-        else:
-            merged_centroids.append({'lat': row1['lat'], 'lon': row1['lon']})
-        used.add(i)
-    new_centroids = pd.DataFrame(merged_centroids)
-    # Check if a recursive merge is needed
-    for i, row1 in new_centroids.iterrows():
-        for j, row2 in new_centroids.iterrows():
-            if i != j:
-                if calculate_distance((row1['lat'], row1['lon']), (row2['lat'], row2['lon'])) < threshold:
-                    return merge_close_centroids(new_centroids, threshold)
-    return new_centroids
 
 # --- Header ---
 col1, col2 = st.columns([5, 1], vertical_alignment="center")
@@ -239,7 +203,6 @@ if st.session_state.airshed_confirmed:
         with col2:
             if st.button("Calculate Population Density", type="primary", use_container_width=True):
                 gdf = st.session_state.grid_gdf
-                # Use the cached file's bytes for the analysis
                 raster_bytes = st.session_state.cached_raster['bytes']
                 with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
                     tmp.write(raster_bytes)
@@ -250,16 +213,12 @@ if st.session_state.airshed_confirmed:
                     chunk_size = 10
                     population_sums = []
 
-                    # The progress bar can also contain text
                     progress_bar = st.progress(0, text="Initializing...")
                     time.sleep(1)  # Short delay to ensure the progress bar is visible
 
                     for i in range(0, total_geometries, chunk_size):
                         chunk_gdf = gdf.iloc[i:i + chunk_size]
-                        
-                        # Run stats on the chunk
                         stats = zonal_stats(chunk_gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
-                        
                         chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
                         population_sums.extend(chunk_sums)
 
@@ -269,11 +228,9 @@ if st.session_state.airshed_confirmed:
                         progress_text = f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})"
                         progress_bar.progress(percent_complete, text=progress_text)
 
-                    # --- Finalize and Clean Up ---
                     progress_bar.empty()
                     os.remove(tmp_path)
                     
-                    # Assign the calculated sums to the dataframet
                     gdf["population"] = population_sums
                     gdf["population"] = gdf["population"].astype(int)
             
@@ -298,7 +255,6 @@ if st.session_state.airshed_confirmed:
             map_gdf = gdf.copy()
             map_gdf['population'] = pd.to_numeric(map_gdf['population'], errors='coerce').fillna(0)
 
-            # --- Map Creation ---
             bounds = st.session_state.bounds
             map_center = [(bounds['min_lat'] + bounds['max_lat']) / 2, (bounds['min_lon'] + bounds['max_lon']) / 2]
 
@@ -340,10 +296,10 @@ if st.session_state.airshed_confirmed:
             fig = px.histogram(
                 density_df,
                 x="population",
-                color="Density", # This automatically creates 'Low' and 'High' groups
+                color="Density",
                 nbins=250,
-                marginal="rug",  # Adds the rug plot at the bottom, like in your original image
-                barmode='overlay' # Overlays the histograms
+                marginal="rug",
+                barmode='overlay'
             )
 
             # Make the overlaid bars slightly transparent to see both
@@ -444,9 +400,9 @@ if st.session_state.airshed_confirmed:
             folium.GeoJson(
                     st.session_state.boundary,
                     style_function=lambda x: {
-                        'color': 'black',         # The color of the outline
-                        'weight': 2,             # The thickness of the outline
-                        'fillOpacity': 0.0,      # No fill (makes it transparent inside)
+                        'color': 'black',
+                        'weight': 2,
+                        'fillOpacity': 0.0,
                     },
                     name='Airshed Boundary'
                 ).add_to(m_final)

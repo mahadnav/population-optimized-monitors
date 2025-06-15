@@ -5,6 +5,7 @@ import random
 from haversine import haversine, Unit
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from geopy.distance import geodesic
 
 def classify_population_density(data):
     data['cluster'] = np.where(data['population'] < 5000, 0, 1)
@@ -209,6 +210,38 @@ def plot_clusters(data, k):
     centroids['population'] = centroids.index.map(cluster_populations)
     centroids.drop(columns=['coords', 'n', 'w'], inplace=True, errors='ignore')
     return points, centroids
+
+def calculate_distance(coord1, coord2):
+    return geodesic(coord1, coord2).kilometers
+
+def merge_close_centroids(centroids, threshold=2):
+    if centroids.empty:
+        return centroids
+    merged_centroids = []
+    used = set()
+    for i, row1 in centroids.iterrows():
+        if i in used: continue
+        close_centroids = [row1]
+        for j, row2 in centroids.iterrows():
+            if i != j and j not in used:
+                distance = calculate_distance((row1['lat'], row1['lon']), (row2['lat'], row2['lon']))
+                if distance < threshold:
+                    close_centroids.append(row2)
+                    used.add(j)
+        if len(close_centroids) > 1:
+            mean_lat = np.mean([c['lat'] for c in close_centroids])
+            mean_long = np.mean([c['lon'] for c in close_centroids])
+            merged_centroids.append({'lat': mean_lat, 'lon': mean_long})
+        else:
+            merged_centroids.append({'lat': row1['lat'], 'lon': row1['lon']})
+        used.add(i)
+    new_centroids = pd.DataFrame(merged_centroids)
+    for i, row1 in new_centroids.iterrows():
+        for j, row2 in new_centroids.iterrows():
+            if i != j:
+                if calculate_distance((row1['lat'], row1['lon']), (row2['lat'], row2['lon'])) < threshold:
+                    return merge_close_centroids(new_centroids, threshold)
+    return new_centroids
 
 # def cluster_analysis(data, k_max):
 
