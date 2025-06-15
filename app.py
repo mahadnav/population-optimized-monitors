@@ -357,6 +357,8 @@ if st.session_state.airshed_confirmed:
         low, centers_low = apply_wkm(low.copy(), low_monitors)
         high, centers_high = apply_wkm(high.copy(), high_monitors)
 
+        st.dataframe(low)
+
         col1, col2, _ = st.columns(3)
         with col1:
             mean_pop_low = calculate_mean_population_per_cluster(low)
