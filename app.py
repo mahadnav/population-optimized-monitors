@@ -390,7 +390,7 @@ if st.session_state.airshed_confirmed:
     if st.session_state.monitor_data is not None:
         st.markdown("#### Optimized Monitor Locations")
         final_df = st.session_state.monitor_data
-        tab1, tab2 = st.tabs(["Optimized Monitors Map", "Download Data"])
+        tab1, tab2, tab3 = st.tabs(["Optimized Monitors Map", "Visualize Clusters", "Download Data"])
         
         with tab1:
             map_center = [final_df['lat'].mean(), final_df['lon'].mean()]
