@@ -321,7 +321,7 @@ if st.session_state.airshed_confirmed:
 
 
         def calculate_mean_population_per_cluster(data):
-            if data.empty or num_monitors <= 0:
+            if data.empty:
                 return "N/A"
 
             if num_monitors > len(data):
