@@ -320,7 +320,7 @@ if st.session_state.airshed_confirmed:
             return data_with_clusters, centers
 
 
-        def calculate_mean_population_per_cluster(data, num_monitors):
+        def calculate_mean_population_per_cluster(data):
             if data.empty or num_monitors <= 0:
                 return "N/A"
 
@@ -329,7 +329,7 @@ if st.session_state.airshed_confirmed:
                 num_monitors = len(data)
             
             try:
-                data_with_clusters = apply_wkm(data)[0]
+                data_with_clusters = data
                 mean_population_by_cluster = data_with_clusters.groupby('cluster')['population'].sum()
                 overall_mean = mean_population_by_cluster.mean()
                 return f"{int(overall_mean):,}"
@@ -354,13 +354,16 @@ if st.session_state.airshed_confirmed:
         low = vals[vals['Density'] == 'Low']
         high = vals[vals['Density'] == 'High']
 
+        low, centers_low = apply_wkm(low.copy())
+        high, centers_high = apply_wkm(high.copy())
+
         col1, col2, _ = st.columns(3)
         with col1:
-            mean_pop_low = calculate_mean_population_per_cluster(low, low_monitors)
+            mean_pop_low = calculate_mean_population_per_cluster(low)
             st.metric(label="Mean Population Coverage in Low Density Clusters", value=mean_pop_low)
 
         with col2:
-            mean_pop_high = calculate_mean_population_per_cluster(high, high_monitors)
+            mean_pop_high = calculate_mean_population_per_cluster(high)
             st.metric(label="Mean Population Coverage in High Density Clusters", value=mean_pop_high)
 
 
@@ -368,17 +371,12 @@ if st.session_state.airshed_confirmed:
         with col2:
             if st.button("Optimize Monitoring Network", type="primary", use_container_width=True):
                 with st.spinner("Optimizing monitor locations..."):
-                    vals = density_df[['population', 'long', 'lat', 'Density']].copy()
-                    low = vals[vals['Density'] == 'Low']
-                    high = vals[vals['Density'] == 'High']
                     
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
                     if not low.empty and low_monitors > 0:
-                        _, centers_low, = apply_wkm(low, low_monitors)
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
                         st.dataframe(low_df)
                     if not high.empty and high_monitors > 0:
-                        _, centers_high = apply_wkm(low, high_monitors)
                         high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
                     raw_df = pd.concat([low_df, high_df], ignore_index=True)
