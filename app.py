@@ -420,18 +420,23 @@ if st.session_state.airshed_confirmed:
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("#### Low Density Clusters")
                 # Check if the dataframe is not empty and has cluster assignments
                 if not low_df.empty and 'cluster' in low_df.columns:
                     # Convert cluster ID to a string for discrete coloring
                     low_df['cluster_str'] = low_df['cluster'].astype(str)
+                    
+                    min_size = 10
+                    max_size = 500
+                    pop_min = low_df['population'].min()
+                    pop_max = low_df['population'].max()
+                    scaled_sizes = min_size + (low_df['population'] - pop_min) / (pop_max - pop_min) * (max_size - min_size)
                     
                     fig_low = px.scatter(
                         low_df,
                         x='long',
                         y='lat',
                         color='cluster_str',
-                        size='population',
+                        size=scaled_sizes,
                         hover_data={'population': True, 'long': ':.4f', 'lat': ':.4f'},
                         title='Low Population Density Clusters',
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
@@ -444,7 +449,6 @@ if st.session_state.airshed_confirmed:
                     st.info("No data or clusters to display for low-density areas.")
 
             with col2:
-                st.markdown("#### High Density Clusters")
                 # Check if the dataframe is not empty and has cluster assignments
                 if not high_df.empty and 'cluster' in high_df.columns:
                     # Convert cluster ID to a string for discrete coloring
