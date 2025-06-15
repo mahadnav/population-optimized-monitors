@@ -371,10 +371,10 @@ if st.session_state.airshed_confirmed:
                     high = vals[vals['Density'] == 'High']
                     
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
-                    st.dataframe(low_df)
                     if not low.empty and low_monitors > 0:
                         _, centers_low, _, _ = weighted_kmeans(low, randomize_initial_cluster(low, low_monitors), low_monitors)
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
+                        st.dataframe(low_df)
                     if not high.empty and high_monitors > 0:
                         _, centers_high, _, _ = weighted_kmeans(high, randomize_initial_cluster(high, high_monitors), high_monitors)
                         high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
