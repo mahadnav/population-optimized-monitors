@@ -354,8 +354,8 @@ if st.session_state.airshed_confirmed:
         low = vals[vals['Density'] == 'Low']
         high = vals[vals['Density'] == 'High']
 
-        low, centers_low = apply_wkm(low.copy())
-        high, centers_high = apply_wkm(high.copy())
+        low, centers_low = apply_wkm(low.copy(), low_monitors)
+        high, centers_high = apply_wkm(high.copy(), high_monitors)
 
         col1, col2, _ = st.columns(3)
         with col1:
@@ -414,7 +414,60 @@ if st.session_state.airshed_confirmed:
                     folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
             monitor_map = st_folium(m_final, use_container_width=True, height=1050)
         
+        def plot_cluster_distributions(low_df, high_df):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("#### Low Density Clusters")
+                # Check if the dataframe is not empty and has cluster assignments
+                if not low_df.empty and 'cluster' in low_df.columns:
+                    # Convert cluster ID to a string for discrete coloring
+                    low_df['cluster_str'] = low_df['cluster'].astype(str)
+                    
+                    fig_low = px.scatter(
+                        low_df,
+                        x='long',
+                        y='lat',
+                        color='cluster_str',
+                        size='population',
+                        hover_data={'population': True, 'long': ':.4f', 'lat': ':.4f'},
+                        title='Low Population Density Clusters',
+                        labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
+                    )
+                    # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
+                    fig_low.update_yaxes(scaleanchor="x", scaleratio=1)
+                    fig_low.update_layout(legend_title_text='Cluster')
+                    st.plotly_chart(fig_low, use_container_width=True)
+                else:
+                    st.info("No data or clusters to display for low-density areas.")
+
+            with col2:
+                st.markdown("#### High Density Clusters")
+                # Check if the dataframe is not empty and has cluster assignments
+                if not high_df.empty and 'cluster' in high_df.columns:
+                    # Convert cluster ID to a string for discrete coloring
+                    high_df['cluster_str'] = high_df['cluster'].astype(str)
+
+                    fig_high = px.scatter(
+                        high_df,
+                        x='long',
+                        y='lat',
+                        color='cluster_str',
+                        size='population',
+                        hover_data={'population': True, 'long': ':.4f', 'lat': ':.4f'},
+                        title='High Population Density Clusters',
+                        labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
+                    )
+                    # Ensure the plot's aspect ratio is 1:1
+                    fig_high.update_yaxes(scaleanchor="x", scaleratio=1)
+                    fig_high.update_layout(legend_title_text='Cluster')
+                    st.plotly_chart(fig_high, use_container_width=True)
+                else:
+                    st.info("No data or clusters to display for high-density areas.")
         with tab2:
+            plot_cluster_distributions(low, high)
+        
+        with tab3:
             st.dataframe(final_df.style.format({'lat': '{:.5f}', 'lon': '{:.5f}'}))
             final_csv = final_df.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download Monitor Locations CSV", data=final_csv, file_name="optimized_monitor_locations.csv", mime="text/csv")
