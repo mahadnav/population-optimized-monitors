@@ -117,7 +117,28 @@ st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
 add_tile_layers(m)
 Geocoder().add_to(m)
-Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
+if st.session_state.get("airshed_confirmed", False):
+    st.info("Airshed confirmed. To draw a new one, please click the main Reset button.")
+    if st.session_state.get("boundary"):
+        # Add the confirmed boundary as a static, styled GeoJson layer
+        folium.GeoJson(
+            st.session_state.boundary,
+            style_function=lambda x: {
+                'color': '#3153a5',
+                'weight': 3,
+                'fillOpacity': 0.1,
+                'dashArray': '5, 5'
+            },
+            tooltip="Confirmed Airshed"
+        ).add_to(m)
+else:
+    # Only show drawing tools if an airshed has NOT been confirmed
+    st.markdown("Use the rectangle tool on the left to draw your airshed on the map.")
+    Draw(
+        export=False,
+        draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}
+    ).add_to(m)
+
 st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
 # --- Logic to detect a new drawing and require confirmation ---
