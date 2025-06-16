@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import Draw
+from folium.plugins import Draw, Geocoder
 from streamlit_folium import st_folium # type: ignore
 
 from shapely.geometry import box
@@ -116,6 +116,7 @@ with col3:
 st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
 add_tile_layers(m)
+Geocoder().add_to(m)
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
