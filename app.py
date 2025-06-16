@@ -430,10 +430,16 @@ if st.session_state.airshed_confirmed:
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
-                    fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
-                    fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
-                    fig_low.update_layout(showlegend=False)
-                    st.plotly_chart(fig_low, height=1000, use_container_width=True)
+                    fig_low.update_layout(showlegend=False,
+                                          height=1000,
+                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
+                                          yaxis=dict(
+                                          range=[bounds['min_lat'], bounds['max_lat']],
+                                          scaleanchor="x",
+                                          scaleratio=1
+                                        )
+                                    )
+                    st.plotly_chart(fig_low, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for low-density areas.")
 
@@ -452,10 +458,16 @@ if st.session_state.airshed_confirmed:
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
                     # Ensure the plot's aspect ratio is 1:1
-                    fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
-                    fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
-                    fig_low.update_layout(showlegend=False)
-                    st.plotly_chart(fig_high, height=1000, use_container_width=True)
+                    fig_low.update_layout(showlegend=False,
+                                          height=1000,
+                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
+                                          yaxis=dict(
+                                          range=[bounds['min_lat'], bounds['max_lat']],
+                                          scaleanchor="x",
+                                          scaleratio=1
+                                        )
+                                    )
+                    st.plotly_chart(fig_high, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for high-density areas.")
         with tab2:
