@@ -460,9 +460,9 @@ if st.session_state.airshed_confirmed:
 
                     fig_high.update_layout(showlegend=False,
                                           height=700,
-                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
+                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon'] + 0.01]),
                                           yaxis=dict(
-                                          range=[bounds['min_lat'], bounds['max_lat']],
+                                          range=[bounds['min_lat'], bounds['max_lat'] + 0.01],
                                           scaleanchor="x",
                                           scaleratio=1
                                         )
