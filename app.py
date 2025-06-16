@@ -116,7 +116,6 @@ with col3:
 st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=5, tiles=None)
 add_tile_layers(m)
-Geocoder().add_to(m)
 if st.session_state.get("airshed_confirmed", False):
     st.info("Airshed confirmed. To draw a new one, please click the main Reset button.")
     if st.session_state.get("boundary"):
@@ -134,6 +133,7 @@ if st.session_state.get("airshed_confirmed", False):
 else:
     # Only show drawing tools if an airshed has NOT been confirmed
     st.markdown("Use the rectangle tool on the left to draw your airshed on the map.")
+    Geocoder().add_to(m)
     Draw(
         export=False,
         draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}
