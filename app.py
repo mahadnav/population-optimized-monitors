@@ -374,7 +374,6 @@ if st.session_state.airshed_confirmed:
                     low_df, high_df = pd.DataFrame(), pd.DataFrame()
                     if not low.empty and low_monitors > 0:
                         low_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_low])
-                        st.dataframe(low_df)
                     if not high.empty and high_monitors > 0:
                         high_df = pd.DataFrame([{'lat': c['coords'][1], 'lon': c['coords'][0]} for c in centers_high])
 
@@ -417,9 +416,7 @@ if st.session_state.airshed_confirmed:
             col1, col2 = st.columns(2)
 
             with col1:
-                # Check if the dataframe is not empty and has cluster assignments
                 if not low_df.empty and 'cluster' in low_df.columns:
-                    # Convert cluster ID to a string for discrete coloring
                     low_df['cluster_str'] = low_df['cluster'].astype(str)
                     
                     fig_low = px.scatter(
@@ -435,15 +432,12 @@ if st.session_state.airshed_confirmed:
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
                     fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
                     fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
-                    fig_low.update_layout(legend_title_text='Cluster')
                     st.plotly_chart(fig_low, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for low-density areas.")
 
             with col2:
-                # Check if the dataframe is not empty and has cluster assignments
                 if not high_df.empty and 'cluster' in high_df.columns:
-                    # Convert cluster ID to a string for discrete coloring
                     high_df['cluster_str'] = high_df['cluster'].astype(str)
 
                     fig_high = px.scatter(
@@ -459,7 +453,6 @@ if st.session_state.airshed_confirmed:
                     # Ensure the plot's aspect ratio is 1:1
                     fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
                     fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
-                    fig_high.update_layout(legend_title_text='Cluster')
                     st.plotly_chart(fig_high, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for high-density areas.")
