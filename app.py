@@ -416,7 +416,7 @@ if st.session_state.airshed_confirmed:
                     folium.Marker(location=[row['latitude'], row['longitude']], icon=folium.Icon(color='green')).add_to(m_final)
             monitor_map = st_folium(m_final, use_container_width=True, height=1050)
         
-        def plot_cluster_distributions(low_df, high_df):
+        def plot_cluster_distributions(low_df, high_df, bounds):
             col1, col2 = st.columns(2)
 
             with col1:
@@ -442,8 +442,8 @@ if st.session_state.airshed_confirmed:
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
-                    fig_low.update_yaxes(range=[min_lat, max_lat], scaleanchor="x", scaleratio=1)
-                    fig_low.update_xaxes(range=[min_lon, max_lon])
+                    fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
+                    fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
                     fig_low.update_layout(legend_title_text='Cluster')
                     st.plotly_chart(fig_low, use_container_width=True)
                 else:
