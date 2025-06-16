@@ -432,9 +432,9 @@ if st.session_state.airshed_confirmed:
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
                     fig_low.update_layout(showlegend=False,
                                           height=700,
-                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
+                                          xaxis=dict(range=[bounds['min_lon'], bounds['max_lon'] + 0.01]),
                                           yaxis=dict(
-                                          range=[bounds['min_lat'], bounds['max_lat']],
+                                          range=[bounds['min_lat'], bounds['max_lat'] + 0.01],
                                           scaleanchor="x",
                                           scaleratio=1
                                         )
