@@ -425,18 +425,12 @@ if st.session_state.airshed_confirmed:
                     # Convert cluster ID to a string for discrete coloring
                     low_df['cluster_str'] = low_df['cluster'].astype(str)
                     
-                    min_size = 5
-                    max_size = 150
-                    pop_min = low_df['population'].min()
-                    pop_max = low_df['population'].max()
-                    scaled_sizes = min_size + (low_df['population'] - pop_min) / (pop_max - pop_min) * (max_size - min_size)
-                    
                     fig_low = px.scatter(
                         low_df,
                         x='long',
                         y='lat',
                         color='cluster_str',
-                        size=scaled_sizes,
+                        size='population',
                         hover_data={'population': True, 'long': ':.4f', 'lat': ':.4f'},
                         title='Low Population Density Clusters',
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
