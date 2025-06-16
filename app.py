@@ -466,7 +466,8 @@ if st.session_state.airshed_confirmed:
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
                     # Ensure the plot's aspect ratio is 1:1
-                    fig_high.update_yaxes(scaleanchor="x", scaleratio=1)
+                    fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
+                    fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
                     fig_high.update_layout(legend_title_text='Cluster')
                     st.plotly_chart(fig_high, use_container_width=True)
                 else:
