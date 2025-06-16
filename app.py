@@ -431,7 +431,7 @@ if st.session_state.airshed_confirmed:
                     )
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
                     fig_low.update_layout(showlegend=False,
-                                          height=1000,
+                                          height=700,
                                           xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
                                           yaxis=dict(
                                           range=[bounds['min_lat'], bounds['max_lat']],
@@ -457,9 +457,9 @@ if st.session_state.airshed_confirmed:
                         title='High Population Density Clusters',
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
-                    # Ensure the plot's aspect ratio is 1:1
-                    fig_low.update_layout(showlegend=False,
-                                          height=1000,
+
+                    fig_high.update_layout(showlegend=False,
+                                          height=700,
                                           xaxis=dict(range=[bounds['min_lon'], bounds['max_lon']]),
                                           yaxis=dict(
                                           range=[bounds['min_lat'], bounds['max_lat']],
