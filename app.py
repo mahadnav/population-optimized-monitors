@@ -433,7 +433,7 @@ if st.session_state.airshed_confirmed:
                     fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
                     fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
                     fig_low.update_layout(showlegend=False)
-                    st.plotly_chart(fig_low, use_container_width=True)
+                    st.plotly_chart(fig_low, height=600, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for low-density areas.")
 
@@ -455,7 +455,7 @@ if st.session_state.airshed_confirmed:
                     fig_low.update_yaxes(range=[bounds['min_lat'], bounds['max_lat']], scaleanchor="x", scaleratio=1)
                     fig_low.update_xaxes(range=[bounds['min_lon'], bounds['max_lon']])
                     fig_low.update_layout(showlegend=False)
-                    st.plotly_chart(fig_high, use_container_width=True)
+                    st.plotly_chart(fig_high, height=600, use_container_width=True)
                 else:
                     st.info("No data or clusters to display for high-density areas.")
         with tab2:
