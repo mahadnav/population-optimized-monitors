@@ -133,7 +133,6 @@ if st.session_state.get("airshed_confirmed", False):
 else:
     # Only show drawing tools if an airshed has NOT been confirmed
     st.markdown("Use the rectangle tool on the left to draw your airshed on the map.")
-    Geocoder().add_to(m)
     Draw(
         export=False,
         draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}
