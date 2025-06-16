@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import Draw, Geocoder
+from folium.plugins import Draw
 from streamlit_folium import st_folium # type: ignore
 
 from shapely.geometry import box
@@ -114,36 +114,14 @@ with col3:
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
-m = folium.Map(zoom_start=5, tiles=None)
+m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
 add_tile_layers(m)
-if st.session_state.get("airshed_confirmed", False):
-    st.info("Airshed confirmed. To draw a new one, please click the main Reset button.")
-    if st.session_state.get("boundary"):
-        # Add the confirmed boundary as a static, styled GeoJson layer
-        folium.GeoJson(
-            st.session_state.boundary,
-            style_function=lambda x: {
-                'color': '#3153a5',
-                'weight': 3,
-                'fillOpacity': 0.1,
-                'dashArray': '5, 5'
-            },
-            tooltip="Confirmed Airshed"
-        ).add_to(m)
-else:
-    # Only show drawing tools if an airshed has NOT been confirmed
-    st.markdown("Use the rectangle tool on the left to draw your airshed on the map.")
-    Draw(
-        export=False,
-        draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}
-    ).add_to(m)
+Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
+st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
-st_map = st_folium(m, use_container_width=True, returned_objects=["all_drawings"])
-
-airshed_drawn = None
-if st_map.get("all_drawings") and len(st_map["all_drawings"]) > 0:
-    airshed_drawn = st_map["all_drawings"][-1]
-st.session_state.last_drawn_boundary = airshed_drawn
+# --- Logic to detect a new drawing and require confirmation ---
+if st_map and st_map.get("last_active_drawing"):
+    st.session_state.last_drawn_boundary = st_map["last_active_drawing"]
 
 # --- Confirmation Button ---
 if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
