@@ -237,7 +237,6 @@ if st.session_state.airshed_confirmed:
                     st.session_state.population_computed = True
                     
                     st.success("✅ Population analysis complete!")
-                    import time
                     time.sleep(1)
                     st.rerun()
 
@@ -356,8 +355,6 @@ if st.session_state.airshed_confirmed:
 
         low, centers_low = apply_wkm(low.copy(), low_monitors)
         high, centers_high = apply_wkm(high.copy(), high_monitors)
-
-        st.dataframe(low)
 
         col1, col2, _ = st.columns(3)
         with col1:
