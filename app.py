@@ -139,11 +139,12 @@ else:
         draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}
     ).add_to(m)
 
-st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
+st_map = st_folium(m, use_container_width=True, returned_objects=["all_drawings"])
 
-# --- Logic to detect a new drawing and require confirmation ---
-if st_map and st_map.get("last_active_drawing"):
-    st.session_state.last_drawn_boundary = st_map["last_active_drawing"]
+airshed_drawn = None
+if st_map.get("all_drawings") and len(st_map["all_drawings"]) > 0:
+    airshed_drawn = st_map["all_drawings"][-1]
+st.session_state.last_drawn_boundary = airshed_drawn
 
 # --- Confirmation Button ---
 if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
