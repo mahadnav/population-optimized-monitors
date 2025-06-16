@@ -114,7 +114,7 @@ with col3:
 
 # --- STEP 1: DEFINE AIRSHED ---
 st.markdown("#### Define Your Airshed")
-m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
+m = folium.Map(zoom_start=5, tiles=None)
 add_tile_layers(m)
 Geocoder().add_to(m)
 if st.session_state.get("airshed_confirmed", False):
