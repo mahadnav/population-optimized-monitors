@@ -425,8 +425,8 @@ if st.session_state.airshed_confirmed:
                     # Convert cluster ID to a string for discrete coloring
                     low_df['cluster_str'] = low_df['cluster'].astype(str)
                     
-                    min_size = 10
-                    max_size = 500
+                    min_size = 5
+                    max_size = 150
                     pop_min = low_df['population'].min()
                     pop_max = low_df['population'].max()
                     scaled_sizes = min_size + (low_df['population'] - pop_min) / (pop_max - pop_min) * (max_size - min_size)
@@ -442,7 +442,8 @@ if st.session_state.airshed_confirmed:
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
                     # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
-                    fig_low.update_yaxes(scaleanchor="x", scaleratio=1)
+                    fig_low.update_yaxes(range=[min_lat, max_lat], scaleanchor="x", scaleratio=1)
+                    fig_low.update_xaxes(range=[min_lon, max_lon])
                     fig_low.update_layout(legend_title_text='Cluster')
                     st.plotly_chart(fig_low, use_container_width=True)
                 else:
