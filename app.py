@@ -24,14 +24,12 @@ import time
 import tempfile
 from helpers.utils import classify_population_density, randomize_initial_cluster, weighted_kmeans, merge_close_centroids
 
-# --- Page Configuration ---
+
 st.set_page_config(page_title="Population-Centric Monitoring Network", layout="wide")
 
-# --- Custom CSS ---
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
-# --- Session State Initialization ---
 def init_session_state():
     defaults = {
         "boundary": None,
@@ -68,7 +66,6 @@ def add_tile_layers(folium_map):
 
 init_session_state()
 
-# --- Header ---
 col1, col2 = st.columns([5, 1], vertical_alignment="center")
 with col1:
     st.title("Population-Centric Air Quality Monitor Optimization")
@@ -86,7 +83,7 @@ st.divider()
 _, _, col3 = st.columns([4, 4, 0.5], vertical_alignment="center")
 with col3:
     with stylable_container(
-        "blue_button_no_hover",  # It's good practice to give a unique key
+        "blue_button_no_hover",
         css_styles="""
         button {
             background-color: #3153a5;
@@ -119,17 +116,15 @@ add_tile_layers(m)
 Draw(export=False, draw_options={'rectangle': True, 'polygon': False, 'circle': False, 'circlemarker': False, 'marker': False, 'polyline': False}).add_to(m)
 st_map = st_folium(m, use_container_width=True, returned_objects=["last_active_drawing"])
 
-# --- Logic to detect a new drawing and require confirmation ---
 if st_map and st_map.get("last_active_drawing"):
     st.session_state.last_drawn_boundary = st_map["last_active_drawing"]
 
-# --- Confirmation Button ---
 if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirmed:
     st.warning("An airshed has been drawn. Please confirm to proceed.")
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
         with stylable_container(
-        "airshed_button",  # It's good practice to give a unique key
+        "airshed_button",
         css_styles="""
         button {
             background-color: #3153a5;
@@ -212,8 +207,7 @@ if st.session_state.airshed_confirmed:
                     population_sums = []
 
                     progress_bar = st.progress(0, text="Initializing...")
-                    time.sleep(1)  # Short delay to ensure the progress bar is visible
-
+                    time.sleep(1)
                     for i in range(0, total_geometries, chunk_size):
                         chunk_gdf = gdf.iloc[i:i + chunk_size]
                         stats = zonal_stats(chunk_gdf, tmp_path, stats="sum", all_touched=True, geojson_out=False)
@@ -279,14 +273,10 @@ if st.session_state.airshed_confirmed:
                                 )
             st.plotly_chart(fig, use_container_width=True)
 
-
-            # pop_map = st_folium(m_grid, use_container_width=True)
-
         with tab2:
             st.subheader("Population Count Distribution")
             density_df = classify_population_density(gdf.copy())
 
-            # Create a true histogram where the y-axis is the count
             fig = px.histogram(
                 density_df,
                 x="population",
@@ -296,10 +286,7 @@ if st.session_state.airshed_confirmed:
                 barmode='overlay'
             )
 
-            # Make the overlaid bars slightly transparent to see both
             fig.update_traces(opacity=0.75)
-
-            # Update the layout for clarity
             fig.update_layout(
                 xaxis_title='Population Count per Cell',
                 yaxis_title='Count of Grid Cells',
@@ -429,7 +416,7 @@ if st.session_state.airshed_confirmed:
                         hover_data={'population': True, 'long': ':.4f', 'lat': ':.4f'},
                         labels={'long': 'Longitude', 'lat': 'Latitude', 'cluster_str': 'Cluster ID'}
                     )
-                    # Ensure the plot's aspect ratio is 1:1 for accurate geographic representation
+
                     fig_low.update_layout(showlegend=False,
                                           height=700,
                                           xaxis=dict(range=[bounds['min_lon'], bounds['max_lon'] + 0.01]),
