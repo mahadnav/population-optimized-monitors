@@ -1,6 +1,7 @@
 # Population-Centric Optimization of Air Quality Monitoring Networks in Data-Sparse Urban Regions
 
-[doi.org/10.5194/egusphere-egu25-4723](doi.org/10.5194/egusphere-egu25-4723)
+### Paper yet to be peer-reviewed
+[doi.org/10.5194/egusphere-egu25-4723](https://doi.org/10.5194/egusphere-egu25-4723)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
