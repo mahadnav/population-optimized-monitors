@@ -6,14 +6,13 @@ doi.org/10.5194/egusphere-egu25-4723
 
 ## Project Description
 
-This project provides a framework for determining the optimal placement of monitors (e.g., air quality sensors, surveillance cameras, public service kiosks) based on population density and other demographic data. The goal is to maximize coverage and effectiveness by placing resources where they are most needed. The core of this project is an algorithm that ingests population data and outputs a set of optimal coordinates for monitor placement.
+This project provides a framework for determining the optimal placement of PM2.5 monitors based on population counts data. The goal is to maximize coverage and effectiveness by placing resources where they are most needed. The core of this project is an algorithm that ingests population data and outputs a set of optimal coordinates for monitor placement.
 
 ## Key Features
 
 * **Data-Driven Optimization:** Uses population data to find the most effective locations for monitors.
 * **Algorithm:** Implements a weighted k-means clustering algorithm to calculate optimal placements based on population density.
 * **Interactive Web Application:** A user-friendly Streamlit application (`app.py`) for visual analysis and optimization.
-* **Extensible:** The project is designed to be adaptable for different types of monitors and geographical areas.
 
 ## Getting Started
 
@@ -105,10 +104,10 @@ Here is an overview of the key files in this repository:
 ├── .gitignore       # Specifies intentionally untracked files to ignore
 ├── LICENSE          # Contains the project's license (MIT License)
 ├── README.md        # This file
-├── main.py          # The main entry point for the Streamlit application
+├── app.py          # The main entry point for the Streamlit application
 ├── requirements.txt # A list of the Python packages required to run the project
 └── helpers/
-    └── utils.py     # Helper functions for the core analysis (e.g., k-means)
+    └── utils.py     # Helper functions for the core analysis (e.g., weighted k-means)
 ```
 
 ## Contributing
@@ -130,4 +129,5 @@ This project is distributed under the MIT License. See the `LICENSE` file for mo
 ## Acknowledgments
 
 * Population raster data from WorldPop
-* A project associated to Pakistan Air Quality Initiative (PAQI).
+* A project associated with Pakistan Air Quality Initiative (PAQI).
+* The weighted K-means algorithm inspired from [https://github.com/leapingllamas/medium_posts/tree/ae818a78eec7f7821bfecfc0d140cadcdc039a4e/observation_weighted_kmeans]
