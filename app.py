@@ -13,10 +13,7 @@ from rasterstats import zonal_stats
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
-import branca.colormap as bcm
-from branca.element import Element
 
 import base64
 import os
@@ -109,7 +106,7 @@ with col3:
         reset_analysis()
         st.rerun()
 
-# --- STEP 1: DEFINE AIRSHED ---
+# DEFINE AIRSHED
 st.markdown("#### Define Your Airshed")
 m = folium.Map(zoom_start=5, tiles=None) # Set tiles=None initially
 add_tile_layers(m)
@@ -150,7 +147,7 @@ if st.session_state.last_drawn_boundary and not st.session_state.airshed_confirm
                 st.session_state.airshed_confirmed = True
                 st.rerun()
 
-# --- STEP 2: GENERATE GRID & UPLOAD DATA ---
+# GENERATE GRID & UPLOAD DATA
 if st.session_state.airshed_confirmed:
     st.markdown("#### Generate Grid & Upload Population Data")
 
@@ -187,7 +184,7 @@ if st.session_state.airshed_confirmed:
             }
     st.write("Sample data: [WorldPop GeoTIFF United Kingdom](https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/GBR/gbr_ppp_2020_UNadj.tif)")
 
-    # --- STEP 3: RUN POPULATION ANALYSIS ---
+    # RUN POPULATION ANALYSIS
     if st.session_state.cached_raster and not st.session_state.population_computed:
         st.markdown("#### Run Population Analysis")
         st.info("Click the button to compute zonal statistics.")
@@ -201,7 +198,7 @@ if st.session_state.airshed_confirmed:
                     tmp.write(raster_bytes)
                     tmp_path = tmp.name
                     
-                    # --- Progress Bar and Chunking Logic ---
+                    # Progress Bar and Chunking Logic
                     total_geometries = len(gdf)
                     chunk_size = 10
                     population_sums = []
@@ -214,7 +211,7 @@ if st.session_state.airshed_confirmed:
                         chunk_sums = [stat['sum'] if stat and stat['sum'] is not None else 0 for stat in stats]
                         population_sums.extend(chunk_sums)
 
-                        # --- Update Progress Bar ---
+                        # Update Progress Bar
                         processed_count = min(i + chunk_size, total_geometries)
                         percent_complete = processed_count / total_geometries
                         progress_text = f"Processing... {processed_count}/{total_geometries} cells complete ({percent_complete:.0%})"
@@ -234,7 +231,7 @@ if st.session_state.airshed_confirmed:
                     time.sleep(1)
                     st.rerun()
 
-    # --- STEP 4: REVIEW POPULATION DATA ---
+    # REVIEW POPULATION DATA
     if st.session_state.population_computed:
         gdf = st.session_state.population_grid
         bounds = st.session_state.bounds
@@ -309,10 +306,6 @@ if st.session_state.airshed_confirmed:
         def calculate_mean_population_per_cluster(data):
             if data.empty:
                 return "N/A"
-
-            # if num_monitors > len(data):
-            #     st.info(f"Monitor count is capped at the number of available data points ({len(data)}).")
-            #     num_monitors = len(data)
             
             try:
                 data_with_clusters = data
@@ -323,7 +316,7 @@ if st.session_state.airshed_confirmed:
                 st.error(f"Calculation Error: {e}")
                 return "Error"
         
-        # --- STEP 5: CONFIGURE & RUN OPTIMIZATION ---
+        # CONFIGURE & RUN OPTIMIZATION 
         st.markdown("#### Configure Monitoring Network Optimization")
         density_df['long'] = density_df.geometry.centroid.x
         density_df['lat'] = density_df.geometry.centroid.y
@@ -369,7 +362,7 @@ if st.session_state.airshed_confirmed:
                     st.success("✅ Optimization complete!")
                     time.sleep(2)
 
-    # --- STEP 6: REVIEW FINAL RESULTS ---
+    # REVIEW FINAL RESULTS
     if st.session_state.monitor_data is not None:
         st.markdown("#### Optimized Monitor Locations")
         final_df = st.session_state.monitor_data
