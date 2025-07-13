@@ -130,4 +130,4 @@ This project is distributed under the MIT License. See the `LICENSE` file for mo
 
 * Population raster data from WorldPop
 * A project associated with Pakistan Air Quality Initiative (PAQI).
-* The weighted K-means algorithm inspired from [https://github.com/leapingllamas/medium_posts/tree/ae818a78eec7f7821bfecfc0d140cadcdc039a4e/observation_weighted_kmeans]
+* The weighted K-means algorithm inspired from [[https://github.com/leapingllamas/medium_posts/tree/ae818a78eec7f7821bfecfc0d140cadcdc039a4e/observation_weighted_kmeans]]
