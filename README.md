@@ -1,6 +1,6 @@
 # Population-Centric Optimization of Air Quality Monitoring Networks in Data-Sparse Urban Regions
 
-doi.org/10.5194/egusphere-egu25-4723
+[doi.org/10.5194/egusphere-egu25-4723](doi.org/10.5194/egusphere-egu25-4723)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -130,4 +130,4 @@ This project is distributed under the MIT License. See the `LICENSE` file for mo
 
 * Population raster data from WorldPop
 * A project associated with Pakistan Air Quality Initiative (PAQI).
-* The weighted K-means algorithm inspired from [https://github.com/leapingllamas/medium_posts/tree/ae818a78eec7f7821bfecfc0d140cadcdc039a4e/observation_weighted_kmeans](Anderson, C)
+* The weighted K-means algorithm was inspired by an implementation from [Anderson, C](https://github.com/leapingllamas/medium_posts/tree/ae818a78eec7f7821bfecfc0d140cadcdc039a4e).
