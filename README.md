@@ -1,5 +1,7 @@
 # Population-Centric Optimization of Air Quality Monitoring Networks in Data-Sparse Urban Regions
 
+[Link to the app](paqi-population-optimized-monitors.streamlit.app)
+
 ### Paper yet to be peer-reviewed
 [doi.org/10.5194/egusphere-egu25-4723](https://doi.org/10.5194/egusphere-egu25-4723)
 
