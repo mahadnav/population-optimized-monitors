@@ -19,5 +19,3 @@ rasterio
 branca
 plotly
 streamlit-extras
-msodbcsql18-
-gdal-bin
