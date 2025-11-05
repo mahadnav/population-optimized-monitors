@@ -1,10 +1,6 @@
-libodbc1-
-odbcinst-
-odbcinst1debian2-
-msodbcsql18-
-msodbcsql17-
-unixodbc-
-unixodbc-dev-
-mssql-tools-
 gdal-bin
--f
+libgdal-dev
+libgeos-dev
+libproj-dev
+unixodbc
+unixodbc-dev
