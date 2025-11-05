@@ -1,6 +1,5 @@
 gdal-bin
 libgdal32
-libgeos-dev
 libproj25
 libspatialite7
 libsqlite3-0
@@ -10,3 +9,5 @@ libjpeg62-turbo
 libcurl4
 unixodbc
 unixodbc-dev
+libodbc2
+libodbcinst2
