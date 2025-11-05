@@ -1,6 +1,6 @@
 gdal-bin
 libgdal32
-libgeos-c1v6
+libgeos-dev
 libproj25
 libspatialite7
 libsqlite3-0
