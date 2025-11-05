@@ -2,5 +2,8 @@ libodbc1-
 odbcinst-
 odbcinst1debian2-
 msodbcsql18-
+msodbcsql17-
+unixodbc-
+unixodbc-dev-
 gdal-bin
 -f
