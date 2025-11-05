@@ -5,5 +5,6 @@ msodbcsql18-
 msodbcsql17-
 unixodbc-
 unixodbc-dev-
+mssql-tools-
 gdal-bin
 -f
