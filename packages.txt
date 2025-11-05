@@ -1,11 +1,11 @@
 gdal-bin
 libgdal32
-libgeos-c1v5
+libgeos-c1v6
 libproj25
 libspatialite7
 libsqlite3-0
 libpng16-16
-libtiff5
+libtiff6
 libjpeg62-turbo
 libcurl4
 unixodbc
