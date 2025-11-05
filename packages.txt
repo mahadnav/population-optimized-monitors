@@ -1,2 +1,11 @@
+# Remove ALL conflicting ODBC packages
+libodbc1-
+odbcinst-
+odbcinst1debian2-
 msodbcsql18-
+
+# Install gdal-bin and its dependencies
 gdal-bin
+
+# Add the flag to fix the broken state
+-f
